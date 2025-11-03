@@ -427,6 +427,8 @@ const Categories: React.FC = () => {
       // Prepara i dati nel formato corretto per il backend
       const dataToSend = {
         name: formData.name.trim(),
+        description: formData.description,
+        description_en: formData.description_en,
         name_en: formData.name_en.trim(),
         parent_id: formData.parent_id ? parseInt(formData.parent_id) : null,
         is_active: formData.is_active
@@ -697,5 +699,4 @@ const Categories: React.FC = () => {
     </PageContainer>
   );
 };
-
-export default Categories;
+export default Categories; 
