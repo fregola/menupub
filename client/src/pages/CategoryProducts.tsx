@@ -79,6 +79,9 @@ const Header = styled.div`
   justify-content: space-between;
   margin-bottom: 24px;
   gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 `;
 
 const HeaderLeft = styled.div`
@@ -198,8 +201,12 @@ const TagsContainer = styled.div`
 const SubcategoryTags = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 10px 0 24px;
+  gap: 6px;
+  margin: 6px 0 12px;
+  position: sticky;
+  top: 56px; /* sotto l’header sticky */
+  z-index: 999;
+  padding: 4px 0;
 `;
 
 const IngredientsSection = styled.div`
@@ -211,25 +218,22 @@ const AllergensSection = styled.div`
 `;
 
 const SectionRow = styled.div`
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 8px;
-  row-gap: 4px;
-  align-items: start;
+  display: block;
 `;
 
 const SectionLabel = styled.div`
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.9rem;
   font-weight: 600;
   color: #4a5568;
+  margin-right: 6px;
 `;
 
 const ItemsList = styled.div`
   color: #6b7280;
-  display: block;
+  display: inline;
   font-size: 0.85rem;
   line-height: 1.5;
   margin: 0;
@@ -536,12 +540,7 @@ const CategoryProducts: React.FC = () => {
         </ProductsGrid>
       )}
       
-      {/* Pulsante fisso per tornare al menu */}
-      <FixedNavigation>
-        <FloatingBackButton onClick={() => navigate('/menu')}>
-          {language === 'en' ? '← Back to Menu' : '← Torna al Menu'}
-        </FloatingBackButton>
-      </FixedNavigation>
+      {/* Pulsante fisso rimosso su richiesta: si usa solo quello in header */}
       
       {/* Footer condiviso */}
       <SharedFooter />
