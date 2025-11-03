@@ -206,7 +206,10 @@ const SubcategoryTags = styled.div`
   position: sticky;
   top: 56px; /* sotto l’header sticky */
   z-index: 999;
-  padding: 4px 0;
+  padding: 8px 0; /* fascia visiva più chiara */
+  background: #ffffff; /* fascia bianca per visibilità su foto */
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 `;
 
 const IngredientsSection = styled.div`
