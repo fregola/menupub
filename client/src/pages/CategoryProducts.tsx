@@ -149,6 +149,7 @@ const ProductImage = styled.div.withConfig({
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
 
   img {
     width: 100%;
@@ -160,24 +161,30 @@ const ProductImage = styled.div.withConfig({
 
 const ProductName = styled.h3`
   color: #2d3748;
-  font-size: 1.35rem;
-  font-weight: 600;
-  margin: 0 0 10px 0;
-  line-height: 1.3;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  line-height: 1.25;
 `;
 
-const ProductPrice = styled.div`
-  color: #cc9d6d;
-  font-size: 1.1rem;
+const PriceBadge = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(204, 157, 109, 0.95);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.95rem;
   font-weight: 700;
-  margin-bottom: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 `;
 
 const ProductDescription = styled.p`
   color: #4a5568;
   font-size: 0.9rem;
   line-height: 1.5;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 `;
 
 const TagsContainer = styled.div`
@@ -196,43 +203,38 @@ const SubcategoryTags = styled.div`
 `;
 
 const IngredientsSection = styled.div`
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 `;
 
 const AllergensSection = styled.div`
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 `;
 
-const SectionTitle = styled.div`
+const SectionRow = styled.div`
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  row-gap: 4px;
+  align-items: start;
+`;
+
+const SectionLabel = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.9rem;
   font-weight: 600;
   color: #4a5568;
-  margin-bottom: 5px;
 `;
 
 const ItemsList = styled.div`
   color: #6b7280;
-  display: inline;
-  font-size: 0.82rem;
+  display: block;
+  font-size: 0.85rem;
   line-height: 1.5;
   margin: 0;
-  margin-left: 6px; /* avvicina al testo dell'etichetta */
   padding: 0;
-`;
-
-const Tag = styled.span.withConfig({
-  shouldForwardProp: (prop) => prop !== 'type',
-})<{ type: 'allergen' | 'ingredient' }>`
-  background: ${props => props.type === 'allergen' ? '#fed7d7' : '#e6fffa'};
-  color: ${props => props.type === 'allergen' ? '#c53030' : '#00695c'};
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  border: 1px solid ${props => props.type === 'allergen' ? '#feb2b2' : '#b2dfdb'};
+  word-break: break-word;
 `;
 
 // Chip sottocategoria con colore coerente
@@ -270,9 +272,9 @@ const EmptyState = styled.div`
 
 const FixedNavigation = styled.div`
   position: fixed;
-  bottom: 20px;
+  bottom: 90px; /* posizionato sopra il footer fisso */
   right: 20px;
-  z-index: 1000;
+  z-index: 1100;
 `;
 
 const FloatingBackButton = styled.button`
@@ -476,11 +478,11 @@ const CategoryProducts: React.FC = () => {
                     alt="Immagine non disponibile"
                   />
                 )}
+                {/* Prezzo come badge nell'immagine */}
+                <PriceBadge>€ {product.price.toFixed(2)}</PriceBadge>
               </ProductImage>
-              
+
               <ProductName>{language === 'en' ? (product.name_en || product.name) : product.name}</ProductName>
-              
-              <ProductPrice>€ {product.price.toFixed(2)}</ProductPrice>
               
               {(language === 'en' ? (product.description_en || product.description) : product.description) && (
                 <ProductDescription>
@@ -491,9 +493,11 @@ const CategoryProducts: React.FC = () => {
               {/* Ingredienti */}
               {product.ingredients && product.ingredients.length > 0 && (
                 <IngredientsSection>
-                  <SectionTitle>
-                    <span>🥄</span>
-                    <span>{language === 'en' ? 'Ingredients:' : 'Ingredienti:'}</span>
+                  <SectionRow>
+                    <SectionLabel>
+                      <span>🥄</span>
+                      <span>{language === 'en' ? 'Ingredients:' : 'Ingredienti:'}</span>
+                    </SectionLabel>
                     <ItemsList>
                       {product.ingredients
                         .map((ingredient) => (
@@ -503,16 +507,18 @@ const CategoryProducts: React.FC = () => {
                         ))
                         .join(', ')}
                     </ItemsList>
-                  </SectionTitle>
+                  </SectionRow>
                 </IngredientsSection>
               )}
               
               {/* Allergeni */}
               {product.allergens && product.allergens.length > 0 && (
                 <AllergensSection>
-                  <SectionTitle>
-                    <span>⚠️</span>
-                    <span>{language === 'en' ? 'Allergens:' : 'Allergeni:'}</span>
+                  <SectionRow>
+                    <SectionLabel>
+                      <span>⚠️</span>
+                      <span>{language === 'en' ? 'Allergens:' : 'Allergeni:'}</span>
+                    </SectionLabel>
                     <ItemsList>
                       {product.allergens
                         .map((allergen) => (
@@ -522,7 +528,7 @@ const CategoryProducts: React.FC = () => {
                         ))
                         .join(', ')}
                     </ItemsList>
-                  </SectionTitle>
+                  </SectionRow>
                 </AllergensSection>
               )}
             </ProductCard>
@@ -533,7 +539,7 @@ const CategoryProducts: React.FC = () => {
       {/* Pulsante fisso per tornare al menu */}
       <FixedNavigation>
         <FloatingBackButton onClick={() => navigate('/menu')}>
-          {language === 'en' ? '← Menu' : '← Menu'}
+          {language === 'en' ? '← Back to Menu' : '← Torna al Menu'}
         </FloatingBackButton>
       </FixedNavigation>
       
