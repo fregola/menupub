@@ -77,8 +77,8 @@ const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 30px;
-  gap: 20px;
+  margin-bottom: 24px;
+  gap: 12px;
 `;
 
 const HeaderLeft = styled.div`
@@ -89,17 +89,17 @@ const HeaderLeft = styled.div`
 
 const BackButton = styled.button`
   background: rgba(204, 157, 109, 0.1);
-  border: 1.5px solid rgba(204, 157, 109, 0.3);
+  border: 1px solid rgba(204, 157, 109, 0.3);
   color: #cc9d6d;
-  padding: 8px 14px;
-  border-radius: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 
   &:hover {
     background: rgba(204, 157, 109, 0.2);
@@ -109,7 +109,7 @@ const BackButton = styled.button`
 
 const CategoryTitle = styled.h1`
   color: #cc9d6d;
-  font-size: 2.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
   margin: 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
