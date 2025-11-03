@@ -205,6 +205,10 @@ async function startServer() {
         await database.connect();
         console.log('✅ Database connesso');
 
+        // Migrazioni rapide: garantisci colonne necessarie per i controller
+        await database.ensureColumn('allergens', 'name_en', 'VARCHAR(100)');
+        await database.ensureColumn('ingredients', 'name_en', 'VARCHAR(100)');
+
         // Avvia il server HTTP con Socket.IO
         server.listen(PORT, () => {
             console.log(`🚀 Server avviato su porta ${PORT}`);

@@ -213,6 +213,24 @@ class Database {
     }
 
     /**
+     * Garantisce l'esistenza di una colonna, aggiungendola se manca
+     */
+    async ensureColumn(table, column, type) {
+        try {
+            const columns = await this.all(`PRAGMA table_info(${table})`);
+            const exists = Array.isArray(columns) && columns.some(c => c.name === column);
+            if (!exists) {
+                console.log(`🛠️ Aggiungo colonna mancante '${column}' alla tabella '${table}'`);
+                await this.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+                console.log(`✅ Colonna '${column}' aggiunta a '${table}'`);
+            }
+        } catch (err) {
+            console.error(`Errore ensureColumn per ${table}.${column}:`, err.message);
+            throw err;
+        }
+    }
+
+    /**
      * Restituisce l'istanza del database
      */
     getDb() {

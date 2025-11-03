@@ -63,6 +63,7 @@ interface Category {
   name: string;
   name_en?: string;
   description?: string;
+  children?: Category[];
 }
 
 const PageContainer = styled.div`
@@ -88,21 +89,21 @@ const HeaderLeft = styled.div`
 
 const BackButton = styled.button`
   background: rgba(204, 157, 109, 0.1);
-  border: 2px solid rgba(204, 157, 109, 0.3);
+  border: 1.5px solid rgba(204, 157, 109, 0.3);
   color: #cc9d6d;
-  padding: 12px 20px;
-  border-radius: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
   &:hover {
     background: rgba(204, 157, 109, 0.2);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
 `;
 
@@ -116,16 +117,16 @@ const CategoryTitle = styled.h1`
 
 const ProductsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 25px;
-  max-width: 1200px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  max-width: 1100px;
   margin: 0 auto;
 `;
 
 const ProductCard = styled.div`
   background: rgba(255, 255, 255, 0.95);
   border-radius: 20px;
-  padding: 25px;
+  padding: 18px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -140,7 +141,7 @@ const ProductImage = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== 'hasImage',
 })<{ hasImage: boolean }>`
   width: 100%;
-  height: 200px;
+  height: 160px;
   border-radius: 15px;
   margin-bottom: 20px;
   background: ${props => props.hasImage ? 'none' : 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'};
@@ -159,7 +160,7 @@ const ProductImage = styled.div.withConfig({
 
 const ProductName = styled.h3`
   color: #2d3748;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 600;
   margin: 0 0 10px 0;
   line-height: 1.3;
@@ -167,14 +168,14 @@ const ProductName = styled.h3`
 
 const ProductPrice = styled.div`
   color: #cc9d6d;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 15px;
 `;
 
 const ProductDescription = styled.p`
   color: #4a5568;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 15px;
 `;
@@ -184,6 +185,14 @@ const TagsContainer = styled.div`
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 15px;
+`;
+
+// Spazio extra sotto i tag sottocategoria
+const SubcategoryTags = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 24px;
 `;
 
 const IngredientsSection = styled.div`
@@ -205,9 +214,11 @@ const SectionTitle = styled.div`
 `;
 
 const ItemsList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  color: #6b7280;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-top: 4px;
+  padding-left: 26px; /* allinea sotto l'etichetta */
 `;
 
 const Tag = styled.span.withConfig({
@@ -220,6 +231,23 @@ const Tag = styled.span.withConfig({
   font-size: 0.8rem;
   font-weight: 500;
   border: 1px solid ${props => props.type === 'allergen' ? '#feb2b2' : '#b2dfdb'};
+`;
+
+// Chip sottocategoria con colore coerente
+const SubcategoryChip = styled.button`
+  background: rgba(204, 157, 109, 0.12);
+  color: #b8906b;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid rgba(204, 157, 109, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(204, 157, 109, 0.2);
+  }
 `;
 
 const LoadingState = styled.div`
@@ -249,10 +277,10 @@ const FloatingBackButton = styled.button`
   background: #cc9d6d;
   color: white;
   border: none;
-  padding: 15px 20px;
-  border-radius: 50px;
+  padding: 10px 16px; /* più piccolo */
+  border-radius: 40px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px; /* più piccolo */
   font-weight: 600;
   box-shadow: 0 4px 20px rgba(204, 157, 109, 0.3);
   transition: all 0.3s ease;
@@ -273,6 +301,7 @@ const CategoryProducts: React.FC = () => {
   
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
+  const [subcategories, setSubcategories] = useState<Category[]>([]);
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -333,9 +362,10 @@ const CategoryProducts: React.FC = () => {
       try {
         setLoading(true);
         
-        // Carica prodotti e informazioni business in parallelo
-        const [productsResponse, businessResponse] = await Promise.all([
+        // Carica prodotti, informazioni categoria (con figli) e business in parallelo
+        const [productsResponse, categoryResponse, businessResponse] = await Promise.all([
           productService.getByCategory(parseInt(categoryId)),
+          categoryService.getById(parseInt(categoryId)),
           businessService.get()
         ]);
         
@@ -344,6 +374,16 @@ const CategoryProducts: React.FC = () => {
           setCategory(productsResponse.data.category);
         } else {
           setError('Errore nel caricamento dei prodotti');
+        }
+
+        // Imposta sottocategorie solo se hanno prodotti disponibili
+        if (categoryResponse?.success && categoryResponse.data?.category) {
+          const children = categoryResponse.data.category.children || [];
+          const productCategoryIds = new Set(
+            (productsResponse?.success ? productsResponse.data.products : []).map((p: Product) => p.category_id)
+          );
+          const filtered = children.filter((sub: Category) => productCategoryIds.has(sub.id));
+          setSubcategories(filtered);
         }
 
         // Il businessService restituisce direttamente i dati
@@ -369,7 +409,7 @@ const CategoryProducts: React.FC = () => {
   if (loading) {
     return (
       <PageContainer>
-        <LoadingState>Caricamento prodotti...</LoadingState>
+        <LoadingState>{language === 'en' ? 'Loading products...' : 'Caricamento prodotti...'}</LoadingState>
       </PageContainer>
     );
   }
@@ -379,7 +419,7 @@ const CategoryProducts: React.FC = () => {
       <PageContainer>
         <Header>
           <BackButton onClick={handleBack}>
-            ← Torna al Menu
+            {language === 'en' ? '← Back to Menu' : '← Torna al Menu'}
           </BackButton>
         </Header>
         <EmptyState>{error}</EmptyState>
@@ -392,14 +432,28 @@ const CategoryProducts: React.FC = () => {
       <Header>
         <HeaderLeft>
           <BackButton onClick={() => navigate('/menu')}>
-            ← Torna al Menu
+            {language === 'en' ? '← Back to Menu' : '← Torna al Menu'}
           </BackButton>
           <CategoryTitle>{language === 'en' ? (category?.name_en || category?.name) : (category?.name || 'Categoria')}</CategoryTitle>
         </HeaderLeft>
       </Header>
 
+      {/* Tags sottocategorie per navigazione rapida */}
+      {subcategories && subcategories.length > 0 && (
+        <SubcategoryTags>
+          {subcategories.map((sub) => (
+            <SubcategoryChip
+              key={sub.id}
+              onClick={() => navigate(`/menu/category/${sub.id}`)}
+            >
+              {language === 'en' ? (sub.name_en || sub.name) : sub.name}
+            </SubcategoryChip>
+          ))}
+        </SubcategoryTags>
+      )}
+
       {products.length === 0 ? (
-        <EmptyState>Nessun prodotto disponibile in questa categoria.</EmptyState>
+        <EmptyState>{language === 'en' ? 'No products available in this category.' : 'Nessun prodotto disponibile in questa categoria.'}</EmptyState>
       ) : (
         <ProductsGrid>
           {products.map((product) => (
@@ -437,16 +491,17 @@ const CategoryProducts: React.FC = () => {
                 <IngredientsSection>
                   <SectionTitle>
                     <span>🥄</span>
-                    <span>Ingredienti:</span>
-                    <ItemsList>
-                      {product.ingredients.map((ingredient, index) => (
-                        <span key={`ingredient-${ingredient.id}`}>
-                          {ingredient.name}
-                          {index < product.ingredients.length - 1 && ', '}
-                        </span>
-                      ))}
-                    </ItemsList>
+                    <span>{language === 'en' ? 'Ingredients:' : 'Ingredienti:'}</span>
                   </SectionTitle>
+                  <ItemsList>
+                    {product.ingredients
+                      .map((ingredient) => (
+                        language === 'en'
+                          ? (ingredient.name_en || ingredient.name)
+                          : ingredient.name
+                      ))
+                      .join(', ')}
+                  </ItemsList>
                 </IngredientsSection>
               )}
               
@@ -455,16 +510,17 @@ const CategoryProducts: React.FC = () => {
                 <AllergensSection>
                   <SectionTitle>
                     <span>⚠️</span>
-                    <span>Allergeni:</span>
-                    <ItemsList>
-                      {product.allergens.map((allergen, index) => (
-                        <span key={`allergen-${allergen.id}`}>
-                          {allergen.name}
-                          {index < product.allergens.length - 1 && ', '}
-                        </span>
-                      ))}
-                    </ItemsList>
+                    <span>{language === 'en' ? 'Allergens:' : 'Allergeni:'}</span>
                   </SectionTitle>
+                  <ItemsList>
+                    {product.allergens
+                      .map((allergen) => (
+                        language === 'en'
+                          ? (allergen.name_en || allergen.name)
+                          : allergen.name
+                      ))
+                      .join(', ')}
+                  </ItemsList>
                 </AllergensSection>
               )}
             </ProductCard>
@@ -475,7 +531,7 @@ const CategoryProducts: React.FC = () => {
       {/* Pulsante fisso per tornare al menu */}
       <FixedNavigation>
         <FloatingBackButton onClick={() => navigate('/menu')}>
-          ← Menu
+          {language === 'en' ? '← Menu' : '← Menu'}
         </FloatingBackButton>
       </FixedNavigation>
       

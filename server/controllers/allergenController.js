@@ -8,6 +8,11 @@ const allergenValidation = [
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Il nome deve essere tra 1 e 100 caratteri'),
+  body('name_en')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Il nome inglese non può superare i 100 caratteri'),
   body('icon')
     .optional()
     .trim()
@@ -84,7 +89,7 @@ const createAllergen = async (req, res) => {
       });
     }
     
-    const { name, icon } = req.body;
+    const { name, name_en, icon } = req.body;
     
     // Verifica se esiste già un allergene con lo stesso nome
     const existing = await database.select('allergens', '*', 'WHERE LOWER(name) = LOWER(?)', [name]);
@@ -95,9 +100,11 @@ const createAllergen = async (req, res) => {
       });
     }
     
-    // Traduci automaticamente il nome in inglese
-    const nameEn = await translateToEnglish(name);
-    console.log(`Traduzione per "${name}": "${nameEn}"`);
+    // Usa il valore manuale se fornito, altrimenti traduci automaticamente
+    const nameEn = name_en && name_en.trim() ? name_en.trim() : await translateToEnglish(name);
+    if (!name_en) {
+      console.log(`Traduzione per "${name}": "${nameEn}"`);
+    }
     
     const result = await database.insert('allergens', {
       name: name.trim(),
@@ -146,7 +153,7 @@ const updateAllergen = async (req, res) => {
     }
     
     const { id } = req.params;
-    const { name, icon } = req.body;
+    const { name, name_en, icon } = req.body;
     
     // Verifica se l'allergene esiste
     const existing = await database.select('allergens', '*', 'WHERE id = ?', [id]);
@@ -166,8 +173,8 @@ const updateAllergen = async (req, res) => {
       });
     }
     
-    // Traduci automaticamente il nome in inglese
-    const nameEn = await translateToEnglish(name);
+    // Usa il valore manuale se fornito, altrimenti traduci automaticamente
+    const nameEn = name_en && name_en.trim() ? name_en.trim() : await translateToEnglish(name);
     
     await database.update('allergens', {
       name: name.trim(),

@@ -8,6 +8,11 @@ const ingredientValidation = [
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Il nome deve essere tra 1 e 100 caratteri'),
+  body('name_en')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Il nome inglese non può superare i 100 caratteri'),
   body('icon')
     .optional()
     .trim()
@@ -84,7 +89,7 @@ const createIngredient = async (req, res) => {
       });
     }
     
-    const { name, icon } = req.body;
+    const { name, name_en, icon } = req.body;
     
     // Verifica se esiste già un ingrediente con lo stesso nome
     const existing = await database.select('ingredients', '*', 'WHERE LOWER(name) = LOWER(?)', [name]);
@@ -95,8 +100,8 @@ const createIngredient = async (req, res) => {
       });
     }
     
-    // Traduci automaticamente il nome in inglese
-    const nameEn = await translateToEnglish(name);
+    // Usa il valore manuale se fornito, altrimenti traduci automaticamente
+    const nameEn = name_en && name_en.trim() ? name_en.trim() : await translateToEnglish(name);
     
     // Crea l'ingrediente
     const result = await database.insert('ingredients', {
@@ -142,7 +147,7 @@ const updateIngredient = async (req, res) => {
     }
     
     const { id } = req.params;
-    const { name, icon } = req.body;
+    const { name, name_en, icon } = req.body;
     
     // Verifica se l'ingrediente esiste
     const existing = await database.select('ingredients', '*', 'WHERE id = ?', [id]);
@@ -162,8 +167,8 @@ const updateIngredient = async (req, res) => {
       });
     }
     
-    // Traduci automaticamente il nome in inglese
-    const nameEn = await translateToEnglish(name);
+    // Usa il valore manuale se fornito, altrimenti traduci automaticamente
+    const nameEn = name_en && name_en.trim() ? name_en.trim() : await translateToEnglish(name);
     
     // Aggiorna l'ingrediente
     await database.update('ingredients', {
