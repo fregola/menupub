@@ -57,21 +57,32 @@
   text-transform: uppercase;
   margin: 0;
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.last-update {
-  font-size: 0.8rem;
-  margin-left: 10px;
-  opacity: 0.6;
-  cursor: help;
-  animation: pulse 2s infinite;
+.language-switch {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-@keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+.language-switch button {
+  background: transparent;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.language-switch button.active {
+  color: #cc9d6d;
+}
+
+.language-switch .separator {
+  color: #999;
 }
 
 .business-subtitle {

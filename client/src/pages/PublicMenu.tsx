@@ -40,19 +40,28 @@ const PublicMenu: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [language, setLanguage] = useState<'it' | 'en'>(
+    (typeof window !== 'undefined' && localStorage.getItem('menu-language') === 'en') ? 'en' : 'it'
+  );
 
   // Funzione per ricaricare le categorie
   const reloadCategories = useCallback(async () => {
     try {
-      console.log('🔄 Ricaricamento categorie in corso...');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Ricaricamento categorie in corso...');
+      }
       const categoriesResponse = await categoryService.getPublic();
       if (categoriesResponse.success) {
         setCategories(categoriesResponse.data.categories);
         setLastUpdate(new Date());
-        console.log('✅ Categorie ricaricate con successo');
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Categorie ricaricate con successo');
+        }
       }
     } catch (err) {
-      console.error('❌ Errore nel ricaricamento delle categorie:', err);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Errore nel ricaricamento delle categorie:', err);
+      }
     }
   }, []);
 
@@ -146,25 +155,51 @@ const PublicMenu: React.FC = () => {
                   alt={businessInfo.name || 'Logo'}
                   className="business-logo"
                   onLoad={() => {
-                    console.log('Logo caricato con successo:', `${SERVER_BASE_URL}${businessInfo.logo_path}`);
+                    if (process.env.NODE_ENV !== 'production') {
+                      console.log('Logo caricato con successo:', `${SERVER_BASE_URL}${businessInfo.logo_path}`);
+                    }
                   }}
                   onError={(e) => {
-                    console.error('Errore nel caricamento del logo:', `${SERVER_BASE_URL}${businessInfo.logo_path}`);
+                    if (process.env.NODE_ENV !== 'production') {
+                      console.error('Errore nel caricamento del logo:', `${SERVER_BASE_URL}${businessInfo.logo_path}`);
+                    }
                   }}
                 />
               </div>
             )}
             <div className="business-name">
               Menu
-              <span className="last-update" title={`Ultimo aggiornamento: ${lastUpdate.toLocaleTimeString()}`}>
-                🔄
-              </span>
             </div>
             {businessInfo?.description && (
               <div className="business-subtitle">
                 <p className="business-description">{businessInfo.description}</p>
               </div>
             )}
+            <div className="language-switch">
+              <button
+                type="button"
+                className={language === 'it' ? 'active' : ''}
+                onClick={() => {
+                  setLanguage('it');
+                  if (typeof window !== 'undefined') localStorage.setItem('menu-language', 'it');
+                }}
+                aria-label="Imposta lingua italiana"
+              >
+                IT
+              </button>
+              <span className="separator">|</span>
+              <button
+                type="button"
+                className={language === 'en' ? 'active' : ''}
+                onClick={() => {
+                  setLanguage('en');
+                  if (typeof window !== 'undefined') localStorage.setItem('menu-language', 'en');
+                }}
+                aria-label="Set English language"
+              >
+                EN
+              </button>
+            </div>
           </header>
 
           {/* Main content */}
@@ -176,7 +211,7 @@ const PublicMenu: React.FC = () => {
                   className="category-button"
                   onClick={() => handleCategoryClick(category)}
                 >
-                  {category.name}
+                  {language === 'en' ? (category.name_en || category.name) : category.name}
                 </button>
               ))}
             </div>

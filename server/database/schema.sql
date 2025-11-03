@@ -58,6 +58,27 @@ CREATE TABLE IF NOT EXISTS products (
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
+-- Tabella informazioni attività (business)
+CREATE TABLE IF NOT EXISTS business_info (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    address VARCHAR(255),
+    city VARCHAR(100),
+    postal_code VARCHAR(20),
+    phone VARCHAR(50),
+    email VARCHAR(100),
+    vat_number VARCHAR(50),
+    website VARCHAR(255),
+    instagram VARCHAR(255),
+    facebook VARCHAR(255),
+    google_business VARCHAR(255),
+    whatsapp VARCHAR(50),
+    logo_path VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Tabella per associare allergeni agli ingredienti (molti a molti)
 CREATE TABLE IF NOT EXISTS ingredient_allergens (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -134,4 +155,10 @@ CREATE TRIGGER IF NOT EXISTS update_products_timestamp
     AFTER UPDATE ON products
     BEGIN
         UPDATE products SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END;
+
+CREATE TRIGGER IF NOT EXISTS update_business_info_timestamp
+    AFTER UPDATE ON business_info
+    BEGIN
+        UPDATE business_info SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
     END;

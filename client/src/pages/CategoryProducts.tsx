@@ -276,37 +276,52 @@ const CategoryProducts: React.FC = () => {
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [language] = useState<'it' | 'en'>(
+    (typeof window !== 'undefined' && localStorage.getItem('menu-language') === 'en') ? 'en' : 'it'
+  );
 
   // Funzione per ricaricare i prodotti
   const reloadProducts = useCallback(async () => {
     if (!categoryId) return;
     
     try {
-      console.log('🔄 Ricaricamento prodotti in corso...');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Ricaricamento prodotti in corso...');
+      }
       const productsResponse = await productService.getByCategory(parseInt(categoryId));
       
       if (productsResponse.success) {
         setProducts(productsResponse.data.products);
         setCategory(productsResponse.data.category);
-        console.log('✅ Prodotti ricaricati con successo');
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Prodotti ricaricati con successo');
+        }
       }
     } catch (err) {
-      console.error('❌ Errore nel ricaricamento dei prodotti:', err);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Errore nel ricaricamento dei prodotti:', err);
+      }
     }
   }, [categoryId]);
 
   // Gestione eventi Socket.IO per aggiornamenti in tempo reale
   useProductEvents({
     onProductAdded: (data) => {
-      console.log('🆕 Prodotto aggiunto, ricaricamento prodotti...', data);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Prodotto aggiunto, ricaricamento prodotti...', data);
+      }
       reloadProducts();
     },
     onProductUpdated: (data) => {
-      console.log('✏️ Prodotto aggiornato, ricaricamento prodotti...', data);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Prodotto aggiornato, ricaricamento prodotti...', data);
+      }
       reloadProducts();
     },
     onProductDeleted: (data) => {
-      console.log('🗑️ Prodotto eliminato, ricaricamento prodotti...', data);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Prodotto eliminato, ricaricamento prodotti...', data);
+      }
       reloadProducts();
     }
   });
@@ -379,7 +394,7 @@ const CategoryProducts: React.FC = () => {
           <BackButton onClick={() => navigate('/menu')}>
             ← Torna al Menu
           </BackButton>
-          <CategoryTitle>{category?.name || 'Categoria'}</CategoryTitle>
+          <CategoryTitle>{language === 'en' ? (category?.name_en || category?.name) : (category?.name || 'Categoria')}</CategoryTitle>
         </HeaderLeft>
       </Header>
 
@@ -407,12 +422,14 @@ const CategoryProducts: React.FC = () => {
                 )}
               </ProductImage>
               
-              <ProductName>{product.name}</ProductName>
+              <ProductName>{language === 'en' ? (product.name_en || product.name) : product.name}</ProductName>
               
               <ProductPrice>€ {product.price.toFixed(2)}</ProductPrice>
               
-              {product.description && (
-                <ProductDescription>{product.description}</ProductDescription>
+              {(language === 'en' ? (product.description_en || product.description) : product.description) && (
+                <ProductDescription>
+                  {language === 'en' ? (product.description_en || product.description) : product.description}
+                </ProductDescription>
               )}
               
               {/* Ingredienti */}

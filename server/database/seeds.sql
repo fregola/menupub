@@ -95,3 +95,46 @@ INSERT OR IGNORE INTO ingredient_allergens (ingredient_id, allergen_id) VALUES
 -- Utente amministratore di default (password: admin123)
 INSERT OR IGNORE INTO users (username, email, password_hash, role) VALUES
 ('admin', 'admin@restaurant.com', '$2a$10$np806i4pmfxJwjqIBdx5CeM60GUST83oTzROEDeb67/wHGWoBIVOi', 'admin');
+
+-- Prodotti di esempio (necessari per mostrare categorie nel menu pubblico)
+-- Antipasti: prodotto sotto "Antipasti di Terra"
+INSERT OR IGNORE INTO products (name, description, name_en, price, category_id, image_path, is_available) 
+SELECT 
+  'Bruschetta Classica', 
+  'Pane tostato con pomodoro, aglio e olio EVO', 
+  'Classic Bruschetta', 
+  6.50, 
+  id, 
+  NULL, 
+  1 
+FROM categories 
+WHERE name = 'Antipasti di Terra' 
+LIMIT 1;
+
+-- Primi Piatti: prodotto sotto "Risotti"
+INSERT OR IGNORE INTO products (name, description, name_en, price, category_id, image_path, is_available) 
+SELECT 
+  'Risotto ai Funghi', 
+  'Risotto cremoso con funghi porcini', 
+  'Mushroom Risotto', 
+  12.00, 
+  id, 
+  NULL, 
+  1 
+FROM categories 
+WHERE name = 'Risotti' 
+LIMIT 1;
+
+-- Secondi Piatti: prodotto sotto "Pesce"
+INSERT OR IGNORE INTO products (name, description, name_en, price, category_id, image_path, is_available) 
+SELECT 
+  'Salmone alla Griglia', 
+  'Filetto di salmone alla griglia con verdure', 
+  'Grilled Salmon', 
+  18.00, 
+  id, 
+  NULL, 
+  1 
+FROM categories 
+WHERE name = 'Pesce' 
+LIMIT 1;
