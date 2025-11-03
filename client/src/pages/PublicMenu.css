@@ -38,8 +38,8 @@
 }
 
 .business-logo {
-  max-height: 120px;
-  max-width: 300px;
+  max-height: 150px; /* logo più grande */
+  max-width: 340px;
   object-fit: contain;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
   display: block;
@@ -50,7 +50,7 @@
 }
 
 .business-name {
-  font-size: 2rem;
+  font-size: 1.7rem; /* titolo leggermente più piccolo */
   font-weight: 300;
   color: #cc9d6d;
   letter-spacing: 2px;
@@ -179,11 +179,11 @@
   }
   
   .business-logo {
-    max-height: 60px;
+    max-height: 80px; /* più grande anche su mobile */
   }
   
   .business-name {
-    font-size: 1.5rem;
+    font-size: 1.4rem; /* leggermente più piccolo su tablet */
   }
 }
 
@@ -202,7 +202,7 @@
   }
   
   .business-name {
-    font-size: 1.3rem;
+    font-size: 1.2rem; /* leggermente più piccolo su mobile */
     letter-spacing: 1px;
   }
 }

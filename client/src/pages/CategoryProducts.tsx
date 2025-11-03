@@ -68,7 +68,7 @@ interface Category {
 
 const PageContainer = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f5f7fa; /* grigio uniforme senza sfumatura */
   padding: 20px;
   padding-bottom: 120px; /* Spazio per il footer fisso */
 `;
@@ -77,11 +77,20 @@ const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
   gap: 12px;
+  margin-bottom: 6px;
+`;
+
+const StickyBar = styled.div`
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 1000; /* sopra tutto */
+  background: #f5f7fa; /* stesso grigio chiaro dello sfondo pagina (top) */
+  margin-left: -20px; /* full-bleed edge-to-edge */
+  margin-right: -20px;
+  padding: 8px 20px 12px; /* include header e tag nella fascia */
+  border-bottom: none; /* rimosso per evitare stacchi visivi */
+  box-shadow: none; /* rimosso per uniformare il colore */
 `;
 
 const HeaderLeft = styled.div`
@@ -124,6 +133,7 @@ const ProductsGrid = styled.div`
   gap: 20px;
   max-width: 1100px;
   margin: 0 auto;
+  margin-top: 20px; /* spazio aumentato sotto la fascia */
 `;
 
 const ProductCard = styled.div`
@@ -202,14 +212,7 @@ const SubcategoryTags = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 6px 0 12px;
-  position: sticky;
-  top: 56px; /* sotto l’header sticky */
-  z-index: 999;
-  padding: 8px 0; /* fascia visiva più chiara */
-  background: #ffffff; /* fascia bianca per visibilità su foto */
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin: 0; /* evito doppio spazio, lo gestisce la barra sticky */
 `;
 
 const IngredientsSection = styled.div`
@@ -440,28 +443,30 @@ const CategoryProducts: React.FC = () => {
 
   return (
     <PageContainer>
-      <Header>
-        <HeaderLeft>
-          <BackButton onClick={() => navigate('/menu')}>
-            {language === 'en' ? '← Back to Menu' : '← Torna al Menu'}
-          </BackButton>
-          <CategoryTitle>{language === 'en' ? (category?.name_en || category?.name) : (category?.name || 'Categoria')}</CategoryTitle>
-        </HeaderLeft>
-      </Header>
+      <StickyBar>
+        <Header>
+          <HeaderLeft>
+            <BackButton onClick={() => navigate('/menu')}>
+              {language === 'en' ? '← Back to Menu' : '← Torna al Menu'}
+            </BackButton>
+            <CategoryTitle>{language === 'en' ? (category?.name_en || category?.name) : (category?.name || 'Categoria')}</CategoryTitle>
+          </HeaderLeft>
+        </Header>
 
-      {/* Tags sottocategorie per navigazione rapida */}
-      {subcategories && subcategories.length > 0 && (
-        <SubcategoryTags>
-          {subcategories.map((sub) => (
-            <SubcategoryChip
-              key={sub.id}
-              onClick={() => navigate(`/menu/category/${sub.id}`)}
-            >
-              {language === 'en' ? (sub.name_en || sub.name) : sub.name}
-            </SubcategoryChip>
-          ))}
-        </SubcategoryTags>
-      )}
+        {/* Tags sottocategorie per navigazione rapida */}
+        {subcategories && subcategories.length > 0 && (
+          <SubcategoryTags>
+            {subcategories.map((sub) => (
+              <SubcategoryChip
+                key={sub.id}
+                onClick={() => navigate(`/menu/category/${sub.id}`)}
+              >
+                {language === 'en' ? (sub.name_en || sub.name) : sub.name}
+              </SubcategoryChip>
+            ))}
+          </SubcategoryTags>
+        )}
+      </StickyBar>
 
       {products.length === 0 ? (
         <EmptyState>{language === 'en' ? 'No products available in this category.' : 'Nessun prodotto disponibile in questa categoria.'}</EmptyState>
