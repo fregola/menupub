@@ -4,6 +4,7 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { categoryService } from '../services/api';
 import { useAutoTranslate } from '../hooks/useAutoTranslate';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Category {
   id: number;
@@ -247,6 +248,8 @@ const ErrorMessage = styled.div`
 `;
 
 const Categories: React.FC = () => {
+  const { user } = useAuth();
+  const canEdit = user?.role === 'admin' || user?.role === 'cook';
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -513,9 +516,11 @@ const Categories: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             fullWidth
           />
-          <Button onClick={openCreateModal}>
-            Nuova Categoria
-          </Button>
+          {canEdit && (
+            <Button onClick={openCreateModal}>
+              Nuova Categoria
+            </Button>
+          )}
         </SearchContainer>
       </PageHeader>
 
@@ -571,22 +576,26 @@ const Categories: React.FC = () => {
                     </StatusBadge>
                   </TableCell>
                   <TableCell>
-                    <ActionButtons>
-                      <Button
-                        size="small"
-                        variant="secondary"
-                        onClick={() => openEditModal(category)}
-                      >
-                        Modifica
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="danger"
-                        onClick={() => handleDelete(category.id)}
-                      >
-                        Elimina
-                      </Button>
-                    </ActionButtons>
+                    {canEdit ? (
+                      <ActionButtons>
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          onClick={() => openEditModal(category)}
+                        >
+                          Modifica
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="danger"
+                          onClick={() => handleDelete(category.id)}
+                        >
+                          Elimina
+                        </Button>
+                      </ActionButtons>
+                    ) : (
+                      <span style={{ color: '#9ca3af', fontSize: 12 }}>Solo admin</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -699,4 +708,4 @@ const Categories: React.FC = () => {
     </PageContainer>
   );
 };
-export default Categories; 
+export default Categories;

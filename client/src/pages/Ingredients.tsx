@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { ingredientService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { useAutoTranslate } from '../hooks/useAutoTranslate';
 
 interface Ingredient {
@@ -217,6 +218,8 @@ const EnglishName = styled.div`
 `;
 
 const Ingredients: React.FC = () => {
+  const { user } = useAuth();
+  const canEdit = user?.role === 'admin' || user?.role === 'cook';
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -376,9 +379,11 @@ const Ingredients: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             fullWidth
           />
-          <Button onClick={openCreateModal}>
-            Nuovo Ingrediente
-          </Button>
+          {canEdit && (
+            <Button onClick={openCreateModal}>
+              Nuovo Ingrediente
+            </Button>
+          )}
         </SearchContainer>
       </PageHeader>
 
@@ -413,22 +418,24 @@ const Ingredients: React.FC = () => {
                     </IconDisplay>
                   </TableCell>
                   <TableCell>
-                    <ActionButtons>
-                      <Button
-                        size="small"
-                        variant="secondary"
-                        onClick={() => openEditModal(ingredient)}
-                      >
-                        Modifica
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="danger"
-                        onClick={() => handleDelete(ingredient.id)}
-                      >
-                        Elimina
-                      </Button>
-                    </ActionButtons>
+                    {canEdit && (
+                      <ActionButtons>
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          onClick={() => openEditModal(ingredient)}
+                        >
+                          Modifica
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="danger"
+                          onClick={() => handleDelete(ingredient.id)}
+                        >
+                          Elimina
+                        </Button>
+                      </ActionButtons>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

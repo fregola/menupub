@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { authenticateToken, requireAdmin, requireRoles } = require('../middleware/auth');
 const {
   getCategories,
   getPublicCategories,
@@ -27,12 +27,12 @@ router.get('/concatenated', getConcatenatedCategories);
 router.get('/:id', getCategoryById);
 
 // POST /api/categories - Crea una nuova categoria (solo admin)
-router.post('/', authenticateToken, requireAdmin, categoryValidation, createCategory);
+router.post('/', authenticateToken, requireRoles(['admin', 'cook']), categoryValidation, createCategory);
 
 // PUT /api/categories/:id - Aggiorna una categoria (solo admin)
-router.put('/:id', authenticateToken, requireAdmin, categoryValidation, updateCategory);
+router.put('/:id', authenticateToken, requireRoles(['admin', 'cook']), categoryValidation, updateCategory);
 
 // DELETE /api/categories/:id - Elimina una categoria (solo admin)
-router.delete('/:id', authenticateToken, requireAdmin, deleteCategory);
+router.delete('/:id', authenticateToken, requireRoles(['admin', 'cook']), deleteCategory);
 
 module.exports = router;

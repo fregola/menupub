@@ -20,7 +20,7 @@ const authenticateToken = async (req, res, next) => {
         
         // Verifica che l'utente esista ancora nel database
         const user = await database.get(
-            'SELECT id, username, email, role FROM users WHERE id = ?',
+            'SELECT id, username, email, role, is_active FROM users WHERE id = ?',
             [decoded.userId]
         );
 
@@ -28,6 +28,14 @@ const authenticateToken = async (req, res, next) => {
             return res.status(401).json({
                 success: false,
                 message: 'Utente non trovato'
+            });
+        }
+
+        // Blocca utenti disattivati
+        if (user.is_active === 0 || user.is_active === false) {
+            return res.status(403).json({
+                success: false,
+                message: 'Account disattivato'
             });
         }
 
@@ -69,6 +77,20 @@ const requireAdmin = (req, res, next) => {
 };
 
 /**
+ * Middleware per verificare ruoli ammessi
+ */
+const requireRoles = (roles) => (req, res, next) => {
+    if (req.user && roles.includes(req.user.role)) {
+        next();
+    } else {
+        return res.status(403).json({
+            success: false,
+            message: 'Accesso negato: ruolo insufficiente'
+        });
+    }
+};
+
+/**
  * Middleware opzionale per autenticazione (non blocca se non c'è token)
  */
 const optionalAuth = async (req, res, next) => {
@@ -83,7 +105,7 @@ const optionalAuth = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await database.get(
-            'SELECT id, username, email, role FROM users WHERE id = ?',
+            'SELECT id, username, email, role, is_active FROM users WHERE id = ?',
             [decoded.userId]
         );
 
@@ -98,5 +120,6 @@ const optionalAuth = async (req, res, next) => {
 module.exports = {
     authenticateToken,
     requireAdmin,
+    requireRoles,
     optionalAuth
 };

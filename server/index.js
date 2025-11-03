@@ -10,6 +10,7 @@ const database = require('./config/database');
 
 // Import routes
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
 
 const app = express();
 const server = http.createServer(app);
@@ -139,6 +140,7 @@ app.set('io', io);
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/allergens', require('./routes/allergens'));
 app.use('/api/ingredients', require('./routes/ingredients'));
 app.use('/api/categories', require('./routes/categories'));
@@ -208,6 +210,13 @@ async function startServer() {
         // Migrazioni rapide: garantisci colonne necessarie per i controller
         await database.ensureColumn('allergens', 'name_en', 'VARCHAR(100)');
         await database.ensureColumn('ingredients', 'name_en', 'VARCHAR(100)');
+        await database.ensureColumn('users', 'is_active', 'BOOLEAN DEFAULT 1');
+        // Garantisci che l'utente admin sia attivo se presente
+        try {
+            await database.run('UPDATE users SET is_active = 1 WHERE username = ? AND (is_active IS NULL OR is_active = 0)', ['admin']);
+        } catch (e) {
+            console.warn('Impossibile forzare is_active=1 per admin:', e?.message);
+        }
 
         // Avvia il server HTTP con Socket.IO
         server.listen(PORT, () => {

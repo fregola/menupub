@@ -44,6 +44,14 @@ const login = async (req, res) => {
             });
         }
 
+        // Blocca utenti disattivati
+        if (user.is_active === 0 || user.is_active === false) {
+            return res.status(403).json({
+                success: false,
+                message: 'Account disattivato'
+            });
+        }
+
         // Verifica la password
         const isPasswordValid = await bcrypt.compare(password, user.password_hash);
         if (!isPasswordValid) {
@@ -231,10 +239,64 @@ const changePassword = async (req, res) => {
     }
 };
 
+/**
+ * Cambia email utente corrente
+ */
+const changeEmail = async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Dati non validi',
+                errors: errors.array()
+            });
+        }
+
+        const userId = req.user.id;
+        const { email } = req.body;
+
+        // Controllo unicità email
+        const conflict = await database.get(
+            'SELECT id FROM users WHERE email = ? AND id != ?',
+            [email, userId]
+        );
+        if (conflict) {
+            return res.status(409).json({
+                success: false,
+                message: 'Email già in uso'
+            });
+        }
+
+        await database.run(
+            'UPDATE users SET email = ? WHERE id = ?',
+            [email, userId]
+        );
+
+        const updatedUser = await database.get(
+            'SELECT id, username, email, role, is_active, created_at, updated_at FROM users WHERE id = ?',
+            [userId]
+        );
+
+        res.json({
+            success: true,
+            message: 'Email cambiata con successo',
+            data: { user: updatedUser }
+        });
+    } catch (error) {
+        console.error('Errore cambio email:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Errore interno del server'
+        });
+    }
+};
+
 module.exports = {
     login,
     register,
     me,
     logout,
-    changePassword
+    changePassword,
+    changeEmail
 };

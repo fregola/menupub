@@ -56,6 +56,15 @@ export const authService = {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_data');
   },
+
+  changePassword: async (payload: { currentPassword: string; newPassword: string }) => {
+    const response = await api.put('/auth/change-password', payload);
+    return response.data;
+  },
+  changeEmail: async (payload: { email: string }) => {
+    const response = await api.put('/auth/change-email', payload);
+    return response.data;
+  },
 };
 
 // Servizi per allergeni
@@ -222,6 +231,34 @@ export const businessService = {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
+  },
+};
+
+// Servizi per utenti (admin)
+export const userService = {
+  create: async (data: { username: string; email: string; password: string; role?: 'admin' | 'cook' | 'waiter' }) => {
+    const response = await api.post('/users', data);
+    return response.data;
+  },
+  list: async () => {
+    const response = await api.get('/users');
+    return response.data;
+  },
+  setActive: async (id: number, is_active: boolean) => {
+    const response = await api.put(`/users/${id}/status`, { is_active });
+    return response.data;
+  },
+  updateEmail: async (id: number, email: string) => {
+    const response = await api.put(`/users/${id}/email`, { email });
+    return response.data;
+  },
+  updateRole: async (id: number, role: 'admin' | 'cook' | 'waiter') => {
+    const response = await api.put(`/users/${id}/role`, { role });
+    return response.data;
+  },
+  updatePassword: async (id: number, newPassword: string) => {
+    const response = await api.put(`/users/${id}/password`, { newPassword });
     return response.data;
   },
 };

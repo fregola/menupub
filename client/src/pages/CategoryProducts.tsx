@@ -160,7 +160,7 @@ const ProductImage = styled.div.withConfig({
 
 const ProductName = styled.h3`
   color: #2d3748;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 600;
   margin: 0 0 10px 0;
   line-height: 1.3;
@@ -206,7 +206,7 @@ const AllergensSection = styled.div`
 const SectionTitle = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 0.9rem;
   font-weight: 600;
   color: #4a5568;
@@ -215,10 +215,12 @@ const SectionTitle = styled.div`
 
 const ItemsList = styled.div`
   color: #6b7280;
+  display: inline;
   font-size: 0.82rem;
   line-height: 1.5;
-  margin-top: 4px;
-  padding-left: 26px; /* allinea sotto l'etichetta */
+  margin: 0;
+  margin-left: 6px; /* avvicina al testo dell'etichetta */
+  padding: 0;
 `;
 
 const Tag = styled.span.withConfig({
@@ -492,16 +494,16 @@ const CategoryProducts: React.FC = () => {
                   <SectionTitle>
                     <span>🥄</span>
                     <span>{language === 'en' ? 'Ingredients:' : 'Ingredienti:'}</span>
+                    <ItemsList>
+                      {product.ingredients
+                        .map((ingredient) => (
+                          language === 'en'
+                            ? (ingredient.name_en || ingredient.name)
+                            : ingredient.name
+                        ))
+                        .join(', ')}
+                    </ItemsList>
                   </SectionTitle>
-                  <ItemsList>
-                    {product.ingredients
-                      .map((ingredient) => (
-                        language === 'en'
-                          ? (ingredient.name_en || ingredient.name)
-                          : ingredient.name
-                      ))
-                      .join(', ')}
-                  </ItemsList>
                 </IngredientsSection>
               )}
               
@@ -511,16 +513,16 @@ const CategoryProducts: React.FC = () => {
                   <SectionTitle>
                     <span>⚠️</span>
                     <span>{language === 'en' ? 'Allergens:' : 'Allergeni:'}</span>
+                    <ItemsList>
+                      {product.allergens
+                        .map((allergen) => (
+                          language === 'en'
+                            ? (allergen.name_en || allergen.name)
+                            : allergen.name
+                        ))
+                        .join(', ')}
+                    </ItemsList>
                   </SectionTitle>
-                  <ItemsList>
-                    {product.allergens
-                      .map((allergen) => (
-                        language === 'en'
-                          ? (allergen.name_en || allergen.name)
-                          : allergen.name
-                      ))
-                      .join(', ')}
-                  </ItemsList>
                 </AllergensSection>
               )}
             </ProductCard>

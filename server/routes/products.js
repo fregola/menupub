@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { authenticateToken, requireAdmin, requireRoles } = require('../middleware/auth');
 const { upload, processImage } = require('../middleware/upload');
 const {
   getProducts,
@@ -26,12 +26,12 @@ router.get('/category/:categoryId', getProductsByCategory);
 router.get('/:id', getProductById);
 
 // POST /api/products - Crea un nuovo prodotto (solo admin)
-router.post('/', authenticateToken, requireAdmin, upload, processImage, productValidation, createProduct);
+router.post('/', authenticateToken, requireRoles(['admin', 'cook']), upload, processImage, productValidation, createProduct);
 
 // PUT /api/products/:id - Aggiorna un prodotto (solo admin)
-router.put('/:id', authenticateToken, requireAdmin, upload, processImage, productValidation, updateProduct);
+router.put('/:id', authenticateToken, requireRoles(['admin', 'cook']), upload, processImage, productValidation, updateProduct);
 
 // DELETE /api/products/:id - Elimina un prodotto (solo admin)
-router.delete('/:id', authenticateToken, requireAdmin, deleteProduct);
+router.delete('/:id', authenticateToken, requireRoles(['admin', 'cook']), deleteProduct);
 
 module.exports = router;

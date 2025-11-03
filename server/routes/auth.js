@@ -51,6 +51,14 @@ const changePasswordValidation = [
         .withMessage('Nuova password deve contenere almeno una lettera minuscola, una maiuscola e un numero')
 ];
 
+// Validazione cambio email
+const changeEmailValidation = [
+    body('email')
+        .isEmail()
+        .withMessage('Email non valida')
+        .normalizeEmail()
+];
+
 /**
  * @route   POST /api/auth/login
  * @desc    Login utente
@@ -85,5 +93,12 @@ router.post('/logout', authenticateToken, authController.logout);
  * @access  Private
  */
 router.put('/change-password', authenticateToken, changePasswordValidation, authController.changePassword);
+
+/**
+ * @route   PUT /api/auth/change-email
+ * @desc    Cambia email utente corrente
+ * @access  Private
+ */
+router.put('/change-email', authenticateToken, changeEmailValidation, authController.changeEmail);
 
 module.exports = router;

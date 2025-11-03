@@ -2,7 +2,8 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'cook' | 'waiter';
+  is_active?: boolean | number;
   created_at: string;
   updated_at: string;
 }

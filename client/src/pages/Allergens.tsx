@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { allergenService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { useAutoTranslate } from '../hooks/useAutoTranslate';
 
 interface Allergen {
@@ -208,6 +209,8 @@ const EnglishName = styled.div`
 `;
 
 const Allergens: React.FC = () => {
+  const { user } = useAuth();
+  const canEdit = user?.role === 'admin' || user?.role === 'cook';
   const [allergens, setAllergens] = useState<Allergen[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -373,9 +376,11 @@ const Allergens: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             fullWidth
           />
-          <Button onClick={openCreateModal}>
-            Nuovo Allergene
-          </Button>
+          {canEdit && (
+            <Button onClick={openCreateModal}>
+              Nuovo Allergene
+            </Button>
+          )}
         </SearchContainer>
       </PageHeader>
 
@@ -410,22 +415,24 @@ const Allergens: React.FC = () => {
                     </IconDisplay>
                   </TableCell>
                   <TableCell>
-                    <ActionButtons>
-                      <Button
-                        size="small"
-                        variant="secondary"
-                        onClick={() => openEditModal(allergen)}
-                      >
-                        Modifica
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="danger"
-                        onClick={() => handleDelete(allergen.id)}
-                      >
-                        Elimina
-                      </Button>
-                    </ActionButtons>
+                    {canEdit && (
+                      <ActionButtons>
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          onClick={() => openEditModal(allergen)}
+                        >
+                          Modifica
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="danger"
+                          onClick={() => handleDelete(allergen.id)}
+                        >
+                          Elimina
+                        </Button>
+                      </ActionButtons>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

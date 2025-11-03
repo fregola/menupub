@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import { productService, categoryService, allergenService, ingredientService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Product {
   id: number;
@@ -386,6 +387,8 @@ const ProductImage = styled.img`
 `;
 
 const Products: React.FC = () => {
+  const { user } = useAuth();
+  const canEdit = user?.role === 'admin' || user?.role === 'cook';
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [allergens, setAllergens] = useState<Allergen[]>([]);
@@ -640,9 +643,11 @@ const Products: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Button onClick={() => openModal()}>
-            Aggiungi Prodotto
-          </Button>
+          {canEdit && (
+            <Button onClick={() => openModal()}>
+              Aggiungi Prodotto
+            </Button>
+          )}
         </SearchContainer>
       </PageHeader>
 
@@ -715,22 +720,24 @@ const Products: React.FC = () => {
                     </AvailabilityBadge>
                   </TableCell>
                   <TableCell>
-                    <ActionButtons>
-                      <Button
-                        variant="secondary"
-                        size="small"
-                        onClick={() => openModal(product)}
-                      >
-                        Modifica
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="small"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        Elimina
-                      </Button>
-                    </ActionButtons>
+                    {canEdit && (
+                      <ActionButtons>
+                        <Button
+                          variant="secondary"
+                          size="small"
+                          onClick={() => openModal(product)}
+                        >
+                          Modifica
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="small"
+                          onClick={() => handleDelete(product.id)}
+                        >
+                          Elimina
+                        </Button>
+                      </ActionButtons>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
