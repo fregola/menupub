@@ -13,10 +13,18 @@
     "test": "cd server && npm test",
     "test:client": "cd client && npm test"
   },
-  "keywords": ["restaurant", "menu", "portal", "management"],
+  "keywords": [
+    "restaurant",
+    "menu",
+    "portal",
+    "management"
+  ],
   "author": "Restaurant Menu System",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "all": "^0.0.0"
   }
 }

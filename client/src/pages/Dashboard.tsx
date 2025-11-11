@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
-import { allergenService, ingredientService, categoryService, productService } from '../services/api';
+import Button from '../components/common/Button';
+import { allergenService, ingredientService, categoryService, productService, businessService } from '../services/api';
 
 const DashboardContainer = styled.div`
   max-width: 1200px;
@@ -80,6 +81,15 @@ const ActionsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
+`;
+
+const InlineToolbar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
 `;
 
 const ActionCard = styled.button`
@@ -165,6 +175,22 @@ const Dashboard: React.FC = () => {
 
     fetchStats();
   }, []);
+
+  const handleDownloadQr = async () => {
+    try {
+      const blob = await businessService.getMenuQr();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'menu-qr.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Errore durante il download del QR code:', error);
+    }
+  };
 
   const quickActions = [
     {
@@ -259,6 +285,13 @@ const Dashboard: React.FC = () => {
               <ActionDescription>{action.description}</ActionDescription>
             </ActionCard>
           ))}
+          {user?.role === 'admin' && (
+            <ActionCard onClick={handleDownloadQr}>
+              <ActionIcon>🔗</ActionIcon>
+              <ActionTitle>Menu QR</ActionTitle>
+              <ActionDescription>Scarica il QR del menu pubblico</ActionDescription>
+            </ActionCard>
+          )}
         </ActionsGrid>
       </QuickActionsSection>
     </DashboardContainer>

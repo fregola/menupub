@@ -233,6 +233,10 @@ export const businessService = {
     });
     return response.data;
   },
+  getMenuQr: async (): Promise<Blob> => {
+    const response = await api.get('/business/qrcode', { responseType: 'blob' });
+    return response.data;
+  },
 };
 
 // Servizi per utenti (admin)

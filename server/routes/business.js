@@ -3,6 +3,8 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const QRCode = require('qrcode');
 
 const router = express.Router();
 const dbPath = path.join(__dirname, '../database/restaurant.db');
@@ -155,6 +157,42 @@ router.put('/', (req, res) => {
   });
   
   db.close();
+});
+
+// GET /api/business/qrcode - Genera QR code del menu pubblico (solo admin)
+router.get('/qrcode', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    // Determina l'URL del menu pubblico
+    const envUrl = process.env.PUBLIC_MENU_URL && process.env.PUBLIC_MENU_URL.trim();
+
+    let menuUrl = envUrl || '';
+    if (!menuUrl) {
+      // Fallback: prova a dedurre dall'origin oppure usa localhost
+      const origin = (req.headers.origin || '').replace(/\/$/, '');
+      if (origin) {
+        menuUrl = `${origin}/menu`;
+      } else {
+        menuUrl = 'http://localhost:3000/menu';
+      }
+    }
+
+    // Genera PNG del QR code
+    const buffer = await QRCode.toBuffer(menuUrl, {
+      type: 'png',
+      errorCorrectionLevel: 'M',
+      width: 512,
+      margin: 2,
+    });
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Disposition', 'inline; filename="menu-qr.png"');
+    // Evita cache per rigenerare facilmente
+    res.setHeader('Cache-Control', 'no-store');
+    return res.send(buffer);
+  } catch (error) {
+    console.error('Errore generazione QR:', error);
+    return res.status(500).json({ error: 'Errore generazione QR code' });
+  }
 });
 
 module.exports = router;

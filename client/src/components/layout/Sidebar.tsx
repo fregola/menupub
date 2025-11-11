@@ -1,6 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { businessService } from '../../services/api';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -110,6 +112,23 @@ const Icon = styled.span`
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+
+  const handleDownloadQr = async () => {
+    try {
+      const blob = await businessService.getMenuQr();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'menu-qr.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Errore durante il download del QR code:', error);
+    }
+  };
 
   const navigationItems = [
     {
@@ -160,6 +179,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     </NavLink>
                   </NavItem>
                 ))}
+                {user?.role === 'admin' && section.section === 'Gestione Menu' && (
+                  <NavItem key="#qr-download">
+                    <NavLink isActive={false} onClick={handleDownloadQr}>
+                      <Icon>🔗</Icon>
+                      Menu QR
+                    </NavLink>
+                  </NavItem>
+                )}
               </NavList>
             </NavSection>
           ))}

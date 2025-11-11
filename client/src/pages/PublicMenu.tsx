@@ -31,6 +31,7 @@ interface Category {
   parent_id: number | null;
   is_active: number;
   parent_name?: string;
+  sort_order?: number;
 }
 
 const PublicMenu: React.FC = () => {
@@ -52,7 +53,14 @@ const PublicMenu: React.FC = () => {
       }
       const categoriesResponse = await categoryService.getPublic();
       if (categoriesResponse.success) {
-        setCategories(categoriesResponse.data.categories);
+        const cats = categoriesResponse.data.categories || [];
+        cats.sort((a: Category, b: Category) => {
+          const ao = a.sort_order ?? 0;
+          const bo = b.sort_order ?? 0;
+          if (ao !== bo) return ao - bo;
+          return (a.name || '').localeCompare(b.name || '');
+        });
+        setCategories(cats);
         setLastUpdate(new Date());
         if (process.env.NODE_ENV !== 'production') {
           console.log('Categorie ricaricate con successo');
@@ -93,7 +101,14 @@ const PublicMenu: React.FC = () => {
         // Fetch public categories (only parent categories with products)
         const categoriesResponse = await categoryService.getPublic();
         if (categoriesResponse.success) {
-          setCategories(categoriesResponse.data.categories);
+          const cats = categoriesResponse.data.categories || [];
+          cats.sort((a: Category, b: Category) => {
+            const ao = a.sort_order ?? 0;
+            const bo = b.sort_order ?? 0;
+            if (ao !== bo) return ao - bo;
+            return (a.name || '').localeCompare(b.name || '');
+          });
+          setCategories(cats);
         } else {
           setError('Errore nel caricamento delle categorie');
         }

@@ -15,6 +15,7 @@ interface Category {
   parent_id: number | null;
   parent_name: string | null;
   is_active: boolean;
+  sort_order?: number;
   created_at: string;
   updated_at: string;
 }
@@ -262,7 +263,8 @@ const Categories: React.FC = () => {
     name_en: '',
     description_en: '',
     parent_id: '',
-    is_active: true
+    is_active: true,
+    sort_order: '0'
   });
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
   const [submitting, setSubmitting] = useState(false);
@@ -327,8 +329,13 @@ const Categories: React.FC = () => {
       }
     });
 
-    // Ordina per nome invece di sort_order
-    rootCategories.sort((a, b) => a.name.localeCompare(b.name));
+    // Ordina le root per sort_order (fallback su nome)
+    rootCategories.sort((a, b) => {
+      const ao = a.sort_order ?? 0;
+      const bo = b.sort_order ?? 0;
+      if (ao !== bo) return ao - bo;
+      return a.name.localeCompare(b.name);
+    });
     childCategories.sort((a, b) => a.name.localeCompare(b.name));
 
     const result: (Category & { level: number })[] = [];
@@ -365,7 +372,8 @@ const Categories: React.FC = () => {
       name_en: '',
       description_en: '',
       parent_id: '', 
-      is_active: true 
+      is_active: true,
+      sort_order: '0'
     });
     setFormErrors({});
     setIsModalOpen(true);
@@ -379,7 +387,8 @@ const Categories: React.FC = () => {
       name_en: category.name_en || '',
       description_en: category.description_en || '',
       parent_id: category.parent_id?.toString() || '',
-      is_active: category.is_active
+      is_active: category.is_active,
+      sort_order: (category.sort_order ?? 0).toString()
     });
     setFormErrors({});
     setIsModalOpen(true);
@@ -394,7 +403,8 @@ const Categories: React.FC = () => {
       name_en: '',
       description_en: '',
       parent_id: '', 
-      is_active: true 
+      is_active: true,
+      sort_order: '0'
     });
     setFormErrors({});
   };
@@ -434,7 +444,8 @@ const Categories: React.FC = () => {
         description_en: formData.description_en,
         name_en: formData.name_en.trim(),
         parent_id: formData.parent_id ? parseInt(formData.parent_id) : null,
-        is_active: formData.is_active
+        is_active: formData.is_active,
+        sort_order: Number.isNaN(parseInt(formData.sort_order)) ? 0 : parseInt(formData.sort_order)
       };
       
       console.log('dataToSend:', JSON.stringify(dataToSend, null, 2));
@@ -669,6 +680,15 @@ const Categories: React.FC = () => {
                 </span>
               )}
             </FormGroup>
+
+            <Input
+              label="Ordine"
+              type="number"
+              value={formData.sort_order}
+              onChange={(e) => setFormData({ ...formData, sort_order: e.target.value })}
+              placeholder="Imposta l'ordine delle categorie principali"
+              fullWidth
+            />
             
             <FormGroup>
               <CheckboxContainer>

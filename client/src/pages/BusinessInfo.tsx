@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Button from '../components/common/Button';
 import { businessService } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const BusinessContainer = styled.div`
   max-width: 800px;
@@ -206,6 +207,7 @@ interface BusinessData {
 }
 
 const BusinessInfo: React.FC = () => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<BusinessData>({
     name: '',
     description: '',
@@ -226,6 +228,9 @@ const BusinessInfo: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
+  const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
+  const shareMenuUrl = typeof window !== 'undefined' ? `${window.location.origin}/menu` : '/menu';
 
   useEffect(() => {
     // Carica i dati esistenti dell'attività
@@ -313,6 +318,25 @@ const BusinessInfo: React.FC = () => {
       setMessage({ type: 'error', text: 'Errore nel caricamento del logo. Riprova.' });
     } finally {
       setLogoUploading(false);
+    }
+  };
+
+  const handleGenerateQr = async () => {
+    setQrLoading(true);
+    setMessage(null);
+    try {
+      const blob = await businessService.getMenuQr();
+      const objectUrl = URL.createObjectURL(blob);
+      // Pulisci eventuale URL precedente
+      if (qrPreviewUrl) {
+        try { URL.revokeObjectURL(qrPreviewUrl); } catch {}
+      }
+      setQrPreviewUrl(objectUrl);
+    } catch (error) {
+      console.error('Errore generazione QR:', error);
+      setMessage({ type: 'error', text: 'Errore nella generazione del QR code.' });
+    } finally {
+      setQrLoading(false);
     }
   };
 
@@ -426,6 +450,28 @@ const BusinessInfo: React.FC = () => {
               </FormGroup>
             </FormRow>
           </Section>
+
+          {user?.role === 'admin' && (
+            <Section>
+              <SectionTitle>🔗 Distribuzione Menu via QR</SectionTitle>
+              <Subtitle style={{ marginBottom: 0 }}>URL pubblico del menu: <a href={shareMenuUrl} target="_blank" rel="noreferrer">{shareMenuUrl}</a></Subtitle>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <Button type="button" variant="primary" onClick={handleGenerateQr} disabled={qrLoading}>
+                  {qrLoading ? 'Generazione...' : 'Genera QR Code'}
+                </Button>
+                {qrPreviewUrl && (
+                  <a href={qrPreviewUrl} download="menu-qr.png" style={{ textDecoration: 'none' }}>
+                    <Button type="button" variant="secondary">Scarica PNG</Button>
+                  </a>
+                )}
+              </div>
+              {qrPreviewUrl && (
+                <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+                  <img src={qrPreviewUrl} alt="QR Code del menu" style={{ width: 256, height: 256, border: '1px solid #e5e7eb', borderRadius: 8 }} />
+                </div>
+              )}
+            </Section>
+          )}
 
           <Section>
             <SectionTitle>📞 Contatti</SectionTitle>

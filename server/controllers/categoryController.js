@@ -8,6 +8,10 @@ const categoryValidation = [
     .trim()
     .isLength({ min: 1, max: 100 })
     .withMessage('Il nome deve essere tra 1 e 100 caratteri'),
+  body('sort_order')
+    .optional({ nullable: true })
+    .isInt({ min: 0 })
+    .withMessage('L\'ordine deve essere un numero intero maggiore o uguale a 0'),
   body('parent_id')
     .optional({ nullable: true })
     .custom((value) => {
@@ -54,7 +58,7 @@ const getPublicCategories = async (req, res) => {
             WHERE sub.parent_id = c.id AND sub.is_active = 1 AND p.is_available = 1
           )
         )
-      ORDER BY c.name ASC
+      ORDER BY COALESCE(c.sort_order, 0) ASC, c.name ASC
     `;
     
     const categories = await database.all(query);
@@ -84,11 +88,11 @@ const getCategories = async (req, res) => {
         FROM categories c 
         INNER JOIN products p ON c.id = p.category_id 
         WHERE p.is_available = 1 
-        ORDER BY c.name ASC
+        ORDER BY COALESCE(c.sort_order, 0) ASC, c.name ASC
       `;
       categories = await database.all(query);
     } else {
-      categories = await database.select('categories', '*', 'ORDER BY name ASC');
+      categories = await database.select('categories', '*', 'ORDER BY COALESCE(sort_order, 0) ASC, name ASC');
     }
     
     if (concatenated === 'true') {
@@ -199,7 +203,7 @@ const getCategoryById = async (req, res) => {
       }
     }
 
-    const children = await database.select('categories', '*', 'WHERE parent_id = ? ORDER BY name ASC', [id]);
+    const children = await database.select('categories', '*', 'WHERE parent_id = ? ORDER BY COALESCE(sort_order, 0) ASC, name ASC', [id]);
 
     const result = {
       ...category[0],
@@ -237,7 +241,7 @@ const createCategory = async (req, res) => {
     }
 
     // Prendi anche description e description_en
-    const { name, description, description_en, parent_id, name_en: providedNameEn, is_active } = req.body;
+    const { name, description, description_en, parent_id, name_en: providedNameEn, is_active, sort_order } = req.body;
     let name_en = providedNameEn && providedNameEn.trim() ? providedNameEn.trim() : await translateToEnglish(name);
 
     let whereClause = 'WHERE LOWER(name) = LOWER(?)';
@@ -272,6 +276,7 @@ const createCategory = async (req, res) => {
       description_en: description_en || null,
       parent_id: parent_id || null,
       name_en: name_en,
+      sort_order: Number.isInteger(Number(sort_order)) ? Number(sort_order) : 0,
       is_active: is_active !== undefined ? is_active : true
     });
 
@@ -316,7 +321,7 @@ const updateCategory = async (req, res) => {
     }
     const { id } = req.params;
     // da aggiornare anche qui per includere description, description_en se desideri
-    const { name, description, description_en, parent_id, name_en: providedNameEn, is_active } = req.body;
+    const { name, description, description_en, parent_id, name_en: providedNameEn, is_active, sort_order } = req.body;
     let name_en = providedNameEn && providedNameEn.trim() ? providedNameEn.trim() : await translateToEnglish(name);
 
     const existing = await database.select('categories', '*', 'WHERE id = ?', [id]);
@@ -384,6 +389,7 @@ const updateCategory = async (req, res) => {
       description_en: description_en || null,
       parent_id: parent_id || null,
       name_en: name_en,
+      sort_order: Number.isInteger(Number(sort_order)) ? Number(sort_order) : (existing[0].sort_order ?? 0),
       is_active: is_active !== undefined ? is_active : existing[0].is_active
     }, 'WHERE id = ?', [id]);
 

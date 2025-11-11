@@ -52,6 +52,36 @@ const Form = styled.form`
   gap: 20px;
 `;
 
+const PasswordField = styled.div`
+  position: relative;
+  
+  /* Evita sovrapposizioni: aumenta il padding destro dell'input */
+  input {
+    padding-right: 44px;
+  }
+`;
+
+const EyeToggle = styled.button`
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+  
+  &:hover {
+    color: #374151;
+  }
+`;
+
 const ErrorMessage = styled.div`
   background-color: #fef2f2;
   border: 1px solid #fecaca;
@@ -71,6 +101,7 @@ const LoginForm: React.FC = () => {
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loginError, setLoginError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -152,17 +183,27 @@ const LoginForm: React.FC = () => {
             required
           />
           
-          <Input
-            label="Password"
-            name="password"
-            type="password"
-            placeholder="Inserisci la tua password"
-            value={formData.password}
-            onChange={handleChange}
-            error={errors.password}
-            fullWidth
-            required
-          />
+          <PasswordField>
+            <Input
+              label="Password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Inserisci la tua password"
+              value={formData.password}
+              onChange={handleChange}
+              error={errors.password}
+              fullWidth
+              required
+            />
+            <EyeToggle
+              type="button"
+              aria-label={showPassword ? 'Nascondi password' : 'Mostra password'}
+              title={showPassword ? 'Nascondi password' : 'Mostra password'}
+              onClick={() => setShowPassword(v => !v)}
+            >
+              {showPassword ? '🙈' : '👁️'}
+            </EyeToggle>
+          </PasswordField>
           
           <Button
             type="submit"
