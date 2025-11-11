@@ -578,10 +578,11 @@ const CategoryProducts: React.FC = () => {
                       {product.ingredients
                         .map((ingredient) => (
                           language === 'en'
-                            ? (ingredient.name_en || ingredient.name)
-                            : ingredient.name
+                            ? (ingredient?.name_en || ingredient?.name || '')
+                            : (ingredient?.name || '')
                         ))
-                        .sort((a, b) => a.localeCompare(b, language === 'en' ? 'en' : 'it', { sensitivity: 'base' }))
+                        .filter(Boolean)
+                        .sort((a, b) => (a || '').localeCompare((b || ''), language === 'en' ? 'en' : 'it', { sensitivity: 'base' }))
                         .join(', ')}
                     </ItemsList>
                   </SectionRow>
@@ -600,10 +601,11 @@ const CategoryProducts: React.FC = () => {
                       {product.allergens
                         .map((allergen) => (
                           language === 'en'
-                            ? (allergen.name_en || allergen.name)
-                            : allergen.name
+                            ? (allergen?.name_en || allergen?.name || '')
+                            : (allergen?.name || '')
                         ))
-                        .sort((a, b) => a.localeCompare(b, language === 'en' ? 'en' : 'it', { sensitivity: 'base' }))
+                        .filter(Boolean)
+                        .sort((a, b) => (a || '').localeCompare((b || ''), language === 'en' ? 'en' : 'it', { sensitivity: 'base' }))
                         .join(', ')}
                     </ItemsList>
                   </SectionRow>
