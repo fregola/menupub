@@ -1,6 +1,10 @@
 const path = require('path');
-// Carica .env in modo affidabile dalla cartella server, indipendentemente dalla cwd
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+const fs = require('fs');
+// Carica .env dalla cartella server; se non esiste, usa .env.production (versionato)
+const envDefault = path.join(__dirname, '.env');
+const envProd = path.join(__dirname, '.env.production');
+const envPath = fs.existsSync(envDefault) ? envDefault : envProd;
+require('dotenv').config({ path: envPath });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
