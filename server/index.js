@@ -1,9 +1,10 @@
-require('dotenv').config();
+const path = require('path');
+// Carica .env in modo affidabile dalla cartella server, indipendentemente dalla cwd
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
 const database = require('./config/database');

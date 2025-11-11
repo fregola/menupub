@@ -167,10 +167,14 @@ router.get('/qrcode', authenticateToken, requireAdmin, async (req, res) => {
 
     let menuUrl = envUrl || '';
     if (!menuUrl) {
-      // Fallback: prova a dedurre dall'origin oppure usa localhost
+      // Fallback: prova prima con Origin, poi con Host, infine localhost
       const origin = (req.headers.origin || '').replace(/\/$/, '');
+      const host = req.get('host');
       if (origin) {
         menuUrl = `${origin}/menu`;
+      } else if (host) {
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        menuUrl = `${protocol}://${host}/menu`;
       } else {
         menuUrl = 'http://localhost:3000/menu';
       }
