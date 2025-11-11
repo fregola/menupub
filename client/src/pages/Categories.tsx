@@ -357,11 +357,11 @@ const Categories: React.FC = () => {
   const organizedCategories = organizeCategories(categories);
   
   const filteredCategories = organizedCategories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    category.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (category.name_en && category.name_en.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (category.description_en && category.description_en.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (category.parent_name && category.parent_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    (category.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (category.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (category.name_en || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (category.description_en || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (category.parent_name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const openCreateModal = () => {

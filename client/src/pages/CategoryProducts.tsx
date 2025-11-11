@@ -5,8 +5,8 @@ import { categoryService, productService, businessService } from '../services/ap
 import { useProductEvents } from '../hooks/useSocket';
 import SharedFooter from '../components/SharedFooter';
 
-// URL base per le risorse statiche
-const SERVER_BASE_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5001';
+// URL base per le risorse statiche via API (proxy-safe)
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 interface Product {
   id: number;
@@ -538,7 +538,7 @@ const CategoryProducts: React.FC = () => {
               <ProductImage hasImage={true}>
                 {product.image_path ? (
                   <img 
-                    src={`${SERVER_BASE_URL}${product.image_path}`}
+                    src={`${API_BASE_URL}${product.image_path}`}
                     alt={product.name}
                     onError={(e) => {
                       // Se l'immagine del prodotto non si carica, mostra l'immagine di default

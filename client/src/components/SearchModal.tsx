@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { productService } from '../services/api';
 
-// URL base per le risorse statiche
-const SERVER_BASE_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5001';
+// URL base per le risorse statiche via API (proxy-safe)
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 interface Product {
   id: number;
@@ -374,7 +374,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                       <ProductImage>
                         {product.image_path ? (
                           <img 
-                            src={`${SERVER_BASE_URL}${product.image_path}`} 
+                            src={`${API_BASE_URL}${product.image_path}`} 
                             alt={product.name}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;

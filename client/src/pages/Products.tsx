@@ -711,7 +711,7 @@ const Products: React.FC = () => {
                   <TableCell>
                     {product.image_path ? (
                       <ProductImage 
-                        src={`http://localhost:5001${product.image_path}`} 
+                        src={`${process.env.REACT_APP_API_URL}${product.image_path}`}
                         alt={product.name}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -879,7 +879,7 @@ const Products: React.FC = () => {
               {(imagePreview || currentImagePath) && (
                 <ImagePreview>
                   <PreviewImage 
-                    src={imagePreview || `http://localhost:5001${currentImagePath}`} 
+                    src={imagePreview || `${process.env.REACT_APP_API_URL}${currentImagePath}`}
                     alt="Anteprima immagine" 
                   />
                   <RemoveImageButton 

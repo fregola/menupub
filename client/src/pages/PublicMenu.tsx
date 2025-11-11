@@ -6,7 +6,7 @@ import SharedFooter from '../components/SharedFooter';
 import './PublicMenu.css';
 
 // URL base per le risorse statiche
-const SERVER_BASE_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5001';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 interface BusinessInfo {
   id: number;
@@ -165,18 +165,18 @@ const PublicMenu: React.FC = () => {
           <header className="public-menu-header">
             {businessInfo?.logo_path && (
               <div className="logo-container">
-                <img 
-                  src={`${SERVER_BASE_URL}${businessInfo.logo_path}`} 
+                  <img 
+                  src={`${API_BASE_URL}${businessInfo.logo_path}`} 
                   alt={businessInfo.name || 'Logo'}
                   className="business-logo"
                   onLoad={() => {
                     if (process.env.NODE_ENV !== 'production') {
-                      console.log('Logo caricato con successo:', `${SERVER_BASE_URL}${businessInfo.logo_path}`);
+                      console.log('Logo caricato con successo:', `${API_BASE_URL}${businessInfo.logo_path}`);
                     }
                   }}
                   onError={(e) => {
                     if (process.env.NODE_ENV !== 'production') {
-                      console.error('Errore nel caricamento del logo:', `${SERVER_BASE_URL}${businessInfo.logo_path}`);
+                      console.error('Errore nel caricamento del logo:', `${API_BASE_URL}${businessInfo.logo_path}`);
                     }
                   }}
                 />

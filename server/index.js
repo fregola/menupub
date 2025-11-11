@@ -106,6 +106,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Servire file statici con CORS
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Alias sotto /api per compatibilità con proxy di produzione
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // Middleware per logging delle richieste

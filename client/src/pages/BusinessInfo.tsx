@@ -388,7 +388,7 @@ const BusinessInfo: React.FC = () => {
               <LogoPreview>
                 {formData.logo_path ? (
                   <LogoImage 
-                    src={`http://localhost:5001${formData.logo_path}`} 
+                    src={`${process.env.REACT_APP_API_URL}${formData.logo_path}`}
                     alt="Logo attività" 
                   />
                 ) : (
