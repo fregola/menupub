@@ -37,7 +37,7 @@ const io = new Server(server, {
         credentials: true
     }
 });
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Middleware di sicurezza
 app.use(helmet({
@@ -211,6 +211,10 @@ async function startServer() {
         await database.ensureColumn('allergens', 'name_en', 'VARCHAR(100)');
         await database.ensureColumn('ingredients', 'name_en', 'VARCHAR(100)');
         await database.ensureColumn('users', 'is_active', 'BOOLEAN DEFAULT 1');
+        // Ordinamento categorie per il menu pubblico
+        await database.ensureColumn('categories', 'sort_order', 'INTEGER DEFAULT 0');
+        // Unità di prezzo per i prodotti (g, hg, l)
+        await database.ensureColumn('products', 'price_unit', 'VARCHAR(20)');
         // Garantisci che l'utente admin sia attivo se presente
         try {
             await database.run('UPDATE users SET is_active = 1 WHERE username = ? AND (is_active IS NULL OR is_active = 0)', ['admin']);

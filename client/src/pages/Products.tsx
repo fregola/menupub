@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
-import { productService, categoryService, allergenService, ingredientService } from '../services/api';
+import { productService, categoryService, allergenService, ingredientService, businessService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Product {
@@ -10,6 +10,7 @@ interface Product {
   name: string;
   name_en?: string;
   price?: number;
+  price_unit?: string;
   category_id?: number;
   category_name?: string;
   image_path?: string;
@@ -194,6 +195,12 @@ const FormActions = styled.div`
   gap: 12px;
   justify-content: flex-end;
   margin-top: 24px;
+`;
+
+const InlineFields = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
 `;
 
 const EmptyState = styled.div`
@@ -402,6 +409,7 @@ const Products: React.FC = () => {
     name: '',
     name_en: '',
     price: '',
+    price_unit: '',
     category_id: '',
     is_available: true,
     allergen_ids: [] as number[],
@@ -457,6 +465,7 @@ const Products: React.FC = () => {
         name: product.name,
         name_en: product.name_en || '',
         price: product.price?.toString() || '',
+        price_unit: product.price_unit || '',
         category_id: product.category_id?.toString() || '',
         is_available: product.is_available,
         allergen_ids: product.allergens?.map(a => a.id) || [],
@@ -471,6 +480,7 @@ const Products: React.FC = () => {
         name: '',
         name_en: '',
         price: '',
+        price_unit: '',
         category_id: '',
         is_available: true,
         allergen_ids: [],
@@ -515,6 +525,9 @@ const Products: React.FC = () => {
       
       if (formData.price) {
         formDataToSend.append('price', formData.price);
+      }
+      if (formData.price_unit) {
+        formDataToSend.append('price_unit', formData.price_unit);
       }
       
       if (formData.category_id) {
@@ -565,6 +578,23 @@ const Products: React.FC = () => {
     } catch (err: any) {
       console.error('Errore nell\'eliminazione:', err);
       setError(err.response?.data?.message || 'Errore nell\'eliminazione del prodotto');
+    }
+  };
+
+  const handleDownloadQr = async () => {
+    try {
+      const blob = await businessService.getMenuQr();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'menu-qr.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      console.error('Errore download QR:', e);
+      alert('Errore nel generare il QR code');
     }
   };
 
@@ -651,6 +681,12 @@ const Products: React.FC = () => {
         </SearchContainer>
       </PageHeader>
 
+      {user?.role === 'admin' && (
+        <div style={{ marginBottom: 16 }}>
+          <Button variant="secondary" onClick={handleDownloadQr}>QR code</Button>
+        </div>
+      )}
+
       {error && <ErrorMessage>{error}</ErrorMessage>}
 
       <Card>
@@ -711,7 +747,9 @@ const Products: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     {product.price ? (
-                      <PriceDisplay>€{product.price.toFixed(2)}</PriceDisplay>
+                      <PriceDisplay>
+                        €{product.price.toFixed(2)}{product.price_unit ? ` / ${product.price_unit}` : ''}
+                      </PriceDisplay>
                     ) : '-'}
                   </TableCell>
                   <TableCell>
@@ -800,21 +838,34 @@ const Products: React.FC = () => {
               </FormGroup>
               <FormGroup>
                 <Label htmlFor="price">Prezzo (€)</Label>
-                <input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
-                  style={{
-                    padding: '12px 16px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '14px'
-                  }}
-                />
+                <InlineFields>
+                  <input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="0.00"
+                    style={{
+                      padding: '12px 16px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <Select
+                    id="price_unit"
+                    value={formData.price_unit}
+                    onChange={(e) => setFormData({ ...formData, price_unit: e.target.value })}
+                    style={{ width: '140px' }}
+                  >
+                    <option value="">Unità</option>
+                    <option value="g">g (grammo)</option>
+                    <option value="hg">hg (etto)</option>
+                    <option value="l">l (litro)</option>
+                  </Select>
+                </InlineFields>
               </FormGroup>
             </FormRow>
 

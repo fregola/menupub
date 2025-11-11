@@ -23,6 +23,11 @@ const productValidation = [
     .optional()
     .isFloat({ min: 0 })
     .withMessage('Il prezzo deve essere un numero positivo'),
+  body('price_unit')
+    .optional()
+    .isString()
+    .isIn(['g', 'hg', 'l'])
+    .withMessage("L'unità di prezzo deve essere una tra: g, hg, l"),
   body('category_id')
     .optional()
     .isInt({ min: 1 })
@@ -336,13 +341,14 @@ const createProduct = async (req, res) => {
       });
     }
     
-    const { name, name_en: provided_name_en, price, category_id, is_available, allergen_ids, ingredient_ids } = req.body;
+    const { name, name_en: provided_name_en, price, price_unit, category_id, is_available, allergen_ids, ingredient_ids } = req.body;
     
     // Debug: log dei dati ricevuti
     console.log('Dati ricevuti nel body:', {
       name,
       provided_name_en,
       price,
+      price_unit,
       category_id,
       is_available,
       allergen_ids,
@@ -388,6 +394,7 @@ const createProduct = async (req, res) => {
       name,
       name_en,
       price: price || null,
+      price_unit: price_unit || null,
       category_id: category_id || null,
       image_path,
       is_available: availableValue
@@ -472,13 +479,14 @@ const updateProduct = async (req, res) => {
     }
     
     const { id } = req.params;
-    const { name, name_en: provided_name_en, price, category_id, is_available, allergen_ids, ingredient_ids } = req.body;
+    const { name, name_en: provided_name_en, price, price_unit, category_id, is_available, allergen_ids, ingredient_ids } = req.body;
     
     // Debug: log dei dati ricevuti per update
     console.log('Dati ricevuti nel body (update):', {
       name,
       provided_name_en,
       price,
+      price_unit,
       category_id,
       is_available,
       allergen_ids,
@@ -535,6 +543,7 @@ const updateProduct = async (req, res) => {
       name: name || existingProduct.name,
       name_en,
       price: price !== undefined ? price : existingProduct.price,
+      price_unit: price_unit !== undefined ? price_unit : existingProduct.price_unit,
       category_id: category_id !== undefined ? category_id : existingProduct.category_id,
       image_path,
       is_available: availableValue

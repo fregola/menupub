@@ -15,6 +15,7 @@ interface Product {
   description?: string;
   description_en?: string;
   price: number;
+  price_unit?: string;
   image_path?: string;
   is_active: number;
   category_id: number;
@@ -64,6 +65,8 @@ interface Category {
   name_en?: string;
   description?: string;
   children?: Category[];
+  parent_id?: number;
+  sort_order?: number;
 }
 
 const PageContainer = styled.div`
@@ -248,7 +251,8 @@ const ItemsList = styled.div`
 `;
 
 // Chip sottocategoria con colore coerente
-const SubcategoryChip = styled.button`
+// Chip sottocategoria con stato attivo per evidenziare il filtro
+const SubcategoryChip = styled.button<{ $active?: boolean }>`
   background: rgba(204, 157, 109, 0.12);
   color: #b8906b;
   padding: 4px 10px;
@@ -262,6 +266,12 @@ const SubcategoryChip = styled.button`
   &:hover {
     background: rgba(204, 157, 109, 0.2);
   }
+
+  ${props => props.$active ? `
+    background: rgba(204, 157, 109, 0.25);
+    color: #9c6f4a;
+    border-color: rgba(204, 157, 109, 0.8);
+  ` : ''}
 `;
 
 const LoadingState = styled.div`
@@ -316,9 +326,11 @@ const CategoryProducts: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [subcategories, setSubcategories] = useState<Category[]>([]);
+  const [publicCategories, setPublicCategories] = useState<Category[]>([]);
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeSubcategoryId, setActiveSubcategoryId] = useState<number | null>(null);
   const [language] = useState<'it' | 'en'>(
     (typeof window !== 'undefined' && localStorage.getItem('menu-language') === 'en') ? 'en' : 'it'
   );
@@ -326,23 +338,38 @@ const CategoryProducts: React.FC = () => {
   // Funzione per ricaricare i prodotti
   const reloadProducts = useCallback(async () => {
     if (!categoryId) return;
-    
     try {
       if (process.env.NODE_ENV !== 'production') {
-        console.log('Ricaricamento prodotti in corso...');
+        console.log('Ricaricamento prodotti (contesto padre) in corso...');
       }
-      const productsResponse = await productService.getByCategory(parseInt(categoryId));
-      
+      // Ottieni categoria corrente e mappa pubblica per calcolare il padre
+      const [categoryResponse, parentsResponse] = await Promise.all([
+        categoryService.getById(parseInt(categoryId)),
+        categoryService.getPublic()
+      ]);
+      let publicParents: Category[] = [];
+      if (parentsResponse?.success && parentsResponse.data?.categories) {
+        publicParents = parentsResponse.data.categories || [];
+      }
+      const currentCat: Category | null = categoryResponse?.success ? categoryResponse.data.category : null;
+      if (!currentCat) return;
+      const directParent = publicParents.find((c) => (c.children || []).some((child) => child.id === currentCat.id));
+      const isTopLevel = publicParents.some((c) => c.id === currentCat.id);
+      const contextParent = directParent || (isTopLevel ? currentCat : currentCat);
+
+      // Carica i prodotti del padre per permettere il filtro locale tra sottocategorie
+      const productsResponse = await productService.getByCategory(contextParent.id);
       if (productsResponse.success) {
         setProducts(productsResponse.data.products);
-        setCategory(productsResponse.data.category);
+        // Manteniamo la categoria in base al route corrente
+        setCategory(currentCat);
         if (process.env.NODE_ENV !== 'production') {
-          console.log('Prodotti ricaricati con successo');
+          console.log('Prodotti ricaricati con successo (contesto padre)');
         }
       }
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') {
-        console.error('Errore nel ricaricamento dei prodotti:', err);
+        console.error('Errore nel ricaricamento dei prodotti (contesto padre):', err);
       }
     }
   }, [categoryId]);
@@ -376,28 +403,61 @@ const CategoryProducts: React.FC = () => {
       try {
         setLoading(true);
         
-        // Carica prodotti, informazioni categoria (con figli) e business in parallelo
-        const [productsResponse, categoryResponse, businessResponse] = await Promise.all([
-          productService.getByCategory(parseInt(categoryId)),
+        // Carica info categoria (con figli) e business; poi categorie pubbliche per contesto
+        const [categoryResponse, businessResponse] = await Promise.all([
           categoryService.getById(parseInt(categoryId)),
           businessService.get()
         ]);
-        
-        if (productsResponse.success) {
-          setProducts(productsResponse.data.products);
-          setCategory(productsResponse.data.category);
-        } else {
-          setError('Errore nel caricamento dei prodotti');
+        const parentsResponse = await categoryService.getPublic();
+
+        // Prepara categorie pubbliche e calcola il contesto (categoria padre) per mostrare SOLO i tag associati
+        let publicParents: Category[] = [];
+        if (parentsResponse?.success && parentsResponse.data?.categories) {
+          publicParents = parentsResponse.data.categories || [];
+          setPublicCategories(publicParents);
         }
 
-        // Imposta sottocategorie solo se hanno prodotti disponibili
+        // Imposta sottocategorie dal contesto di categoria (padre): restano visibili anche navigando tra sottocategorie
         if (categoryResponse?.success && categoryResponse.data?.category) {
-          const children = categoryResponse.data.category.children || [];
+          const currentCat: Category = categoryResponse.data.category;
+
+          // Trova la categoria padre nel set pubblico: se currentCat è figlio, usa il suo padre; altrimenti usa currentCat
+          const findParent = (): Category | null => {
+            // Diretti: currentCat come figlio di un top-level
+            const directParent = publicParents.find((c) => (c.children || []).some((child) => child.id === currentCat.id));
+            if (directParent) return directParent;
+            // Se currentCat è top-level, il contesto è lui stesso
+            const isTopLevel = publicParents.some((c) => c.id === currentCat.id);
+            if (isTopLevel) return currentCat;
+            return null;
+          };
+
+          const contextParent = findParent() || currentCat;
+          // Se siamo entrati da una sottocategoria, selezioniamo quella come filtro attivo
+          const fromSubcategory = !!publicParents.find((c) => (c.children || []).some((child) => child.id === currentCat.id));
+          setActiveSubcategoryId(fromSubcategory ? currentCat.id : null);
+
+          // Carica i prodotti del padre per avere tutte le sottocategorie filtrabili
+          const productsResponse = await productService.getByCategory(contextParent.id);
+          if (productsResponse.success) {
+            setProducts(productsResponse.data.products);
+            setCategory(currentCat); // Manteniamo il titolo coerente con la categoria corrente
+          } else {
+            setError('Errore nel caricamento dei prodotti');
+          }
+
           const productCategoryIds = new Set(
             (productsResponse?.success ? productsResponse.data.products : []).map((p: Product) => p.category_id)
           );
-          const filtered = children.filter((sub: Category) => productCategoryIds.has(sub.id));
-          setSubcategories(filtered);
+          let contextChildren = (contextParent.children || []).filter((sub: Category) => productCategoryIds.has(sub.id));
+          // Ordina per sort_order con fallback al nome
+          contextChildren.sort((a, b) => {
+            const ao = a.sort_order ?? 0;
+            const bo = b.sort_order ?? 0;
+            if (ao !== bo) return ao - bo;
+            return (a.name || '').localeCompare(b.name || '');
+          });
+          setSubcategories(contextChildren);
         }
 
         // Il businessService restituisce direttamente i dati
@@ -453,13 +513,14 @@ const CategoryProducts: React.FC = () => {
           </HeaderLeft>
         </Header>
 
-        {/* Tags sottocategorie per navigazione rapida */}
+        {/* Tags sottocategorie (filtri rapidi) */}
         {subcategories && subcategories.length > 0 && (
           <SubcategoryTags>
             {subcategories.map((sub) => (
               <SubcategoryChip
                 key={sub.id}
-                onClick={() => navigate(`/menu/category/${sub.id}`)}
+                $active={activeSubcategoryId === sub.id}
+                onClick={() => setActiveSubcategoryId(prev => prev === sub.id ? null : sub.id)}
               >
                 {language === 'en' ? (sub.name_en || sub.name) : sub.name}
               </SubcategoryChip>
@@ -472,7 +533,7 @@ const CategoryProducts: React.FC = () => {
         <EmptyState>{language === 'en' ? 'No products available in this category.' : 'Nessun prodotto disponibile in questa categoria.'}</EmptyState>
       ) : (
         <ProductsGrid>
-          {products.map((product) => (
+          {(activeSubcategoryId ? products.filter(p => p.category_id === activeSubcategoryId) : products).map((product) => (
             <ProductCard key={product.id}>
               <ProductImage hasImage={true}>
                 {product.image_path ? (
@@ -490,8 +551,11 @@ const CategoryProducts: React.FC = () => {
                     alt="Immagine non disponibile"
                   />
                 )}
-                {/* Prezzo come badge nell'immagine */}
-                <PriceBadge>€ {product.price.toFixed(2)}</PriceBadge>
+                {/* Prezzo come badge nell'immagine con unità */}
+                <PriceBadge>
+                  € {product.price.toFixed(2)}
+                  {product.price_unit ? ` / ${product.price_unit}` : ''}
+                </PriceBadge>
               </ProductImage>
 
               <ProductName>{language === 'en' ? (product.name_en || product.name) : product.name}</ProductName>
@@ -517,6 +581,7 @@ const CategoryProducts: React.FC = () => {
                             ? (ingredient.name_en || ingredient.name)
                             : ingredient.name
                         ))
+                        .sort((a, b) => a.localeCompare(b, language === 'en' ? 'en' : 'it', { sensitivity: 'base' }))
                         .join(', ')}
                     </ItemsList>
                   </SectionRow>
@@ -538,6 +603,7 @@ const CategoryProducts: React.FC = () => {
                             ? (allergen.name_en || allergen.name)
                             : allergen.name
                         ))
+                        .sort((a, b) => a.localeCompare(b, language === 'en' ? 'en' : 'it', { sensitivity: 'base' }))
                         .join(', ')}
                     </ItemsList>
                   </SectionRow>
