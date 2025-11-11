@@ -526,9 +526,8 @@ const Products: React.FC = () => {
       if (formData.price) {
         formDataToSend.append('price', formData.price);
       }
-      if (formData.price_unit) {
-        formDataToSend.append('price_unit', formData.price_unit);
-      }
+      // Invia sempre price_unit: stringa vuota indica rimozione
+      formDataToSend.append('price_unit', formData.price_unit || '');
       
       if (formData.category_id) {
         formDataToSend.append('category_id', formData.category_id);
@@ -860,7 +859,7 @@ const Products: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, price_unit: e.target.value })}
                     style={{ width: '140px' }}
                   >
-                    <option value="">Unità</option>
+                    <option value="">Nessuna unità</option>
                     <option value="g">g (grammo)</option>
                     <option value="hg">hg (etto)</option>
                     <option value="l">l (litro)</option>

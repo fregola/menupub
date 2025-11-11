@@ -24,10 +24,13 @@ const productValidation = [
     .isFloat({ min: 0 })
     .withMessage('Il prezzo deve essere un numero positivo'),
   body('price_unit')
-    .optional()
-    .isString()
-    .isIn(['g', 'hg', 'l'])
-    .withMessage("L'unità di prezzo deve essere una tra: g, hg, l"),
+    .optional({ nullable: true, checkFalsy: true })
+    .custom((value) => {
+      // Consenti null o stringa vuota per rimuovere l'unità
+      if (value === null || value === '') return true;
+      if (['g', 'hg', 'l'].includes(value)) return true;
+      throw new Error("L'unità di prezzo deve essere una tra: g, hg, l");
+    }),
   body('category_id')
     .optional()
     .isInt({ min: 1 })
@@ -538,12 +541,17 @@ const updateProduct = async (req, res) => {
       }
     }
     
+    // Normalizza price_unit: stringa vuota -> null se fornita
+    const normalizedPriceUnit = (price_unit !== undefined && (price_unit === '' || price_unit === null))
+      ? null
+      : price_unit;
+
     // Aggiorna il prodotto
     const updateData = {
       name: name || existingProduct.name,
       name_en,
       price: price !== undefined ? price : existingProduct.price,
-      price_unit: price_unit !== undefined ? price_unit : existingProduct.price_unit,
+      price_unit: price_unit !== undefined ? normalizedPriceUnit : existingProduct.price_unit,
       category_id: category_id !== undefined ? category_id : existingProduct.category_id,
       image_path,
       is_available: availableValue
