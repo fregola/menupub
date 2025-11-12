@@ -58,11 +58,13 @@ const Card = styled.div`
   border-radius: 12px;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  width: 100%;
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 `;
 
 const TableHeader = styled.thead`
@@ -83,6 +85,8 @@ const TableHeaderCell = styled.th`
   font-weight: 600;
   color: #374151;
   font-size: 14px;
+  &:nth-child(2) { width: 80px; }
+  &:nth-child(3) { width: 220px; }
 `;
 
 const TableCell = styled.td`
@@ -94,6 +98,8 @@ const TableCell = styled.td`
 const ActionButtons = styled.div`
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 `;
 
 const Modal = styled.div.withConfig({
@@ -194,6 +200,7 @@ const DefaultIcon = styled.div`
 const IconDisplay = styled.div`
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 `;
 
