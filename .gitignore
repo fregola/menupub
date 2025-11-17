@@ -1,0 +1,12 @@
+# Env files
+server/.env
+client/.env*
+!client/.env.production
+
+# SQLite databases
+server/database/*.db
+
+# Build artifacts
+client/build/
+server/node_modules/
+client/node_modules/
