@@ -199,4 +199,40 @@ router.get('/qrcode', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+// GET /api/business/qrcode-public - Genera QR code del menu pubblico (accesso pubblico)
+router.get('/qrcode-public', async (req, res) => {
+  try {
+    const envUrl = process.env.PUBLIC_MENU_URL && process.env.PUBLIC_MENU_URL.trim();
+
+    let menuUrl = envUrl || '';
+    if (!menuUrl) {
+      const origin = (req.headers.origin || '').replace(/\/$/, '');
+      const host = req.get('host');
+      if (origin) {
+        menuUrl = `${origin}/menu`;
+      } else if (host) {
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        menuUrl = `${protocol}://${host}/menu`;
+      } else {
+        menuUrl = 'http://localhost:3000/menu';
+      }
+    }
+
+    const buffer = await QRCode.toBuffer(menuUrl, {
+      type: 'png',
+      errorCorrectionLevel: 'M',
+      width: 512,
+      margin: 2,
+    });
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Disposition', 'inline; filename="menu-qr.png"');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.send(buffer);
+  } catch (error) {
+    console.error('Errore generazione QR (pubblico):', error);
+    return res.status(500).json({ error: 'Errore generazione QR code' });
+  }
+});
+
 module.exports = router;

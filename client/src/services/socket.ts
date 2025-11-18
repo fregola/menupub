@@ -9,7 +9,7 @@ class SocketService {
       return;
     }
 
-    const serverUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5001';
+    const serverUrl = (process.env.REACT_APP_API_URL?.replace('/api', '') as string | undefined) || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5001');
     
     this.socket = io(serverUrl, {
       transports: ['websocket', 'polling'],

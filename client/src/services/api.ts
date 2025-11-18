@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { LoginCredentials, AuthResponse } from '../types/auth';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = (process.env.REACT_APP_API_URL as string | undefined) || (typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api');
 
 // Crea un'istanza di axios con configurazione base
 const api = axios.create({

@@ -6,7 +6,7 @@ import { useProductEvents } from '../hooks/useSocket';
 import SharedFooter from '../components/SharedFooter';
 
 // URL base per le risorse statiche via API (proxy-safe)
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = (process.env.REACT_APP_API_URL as string | undefined) || (typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api');
 
 interface Product {
   id: number;

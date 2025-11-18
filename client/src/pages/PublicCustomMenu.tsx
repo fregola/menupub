@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { customMenuService, productService } from '../services/api';
 import SharedFooter from '../components/SharedFooter';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = (process.env.REACT_APP_API_URL as string | undefined) || (typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api');
 
 type VisibleMenu = {
   id: number;

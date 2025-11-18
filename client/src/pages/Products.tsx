@@ -5,6 +5,7 @@ import Input from '../components/common/Input';
 import { productService, categoryService, allergenService, ingredientService, businessService } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
+const API_BASE_URL = (process.env.REACT_APP_API_URL as string | undefined) || (typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api');
 interface Product {
   id: number;
   name: string;
@@ -669,7 +670,7 @@ const Products: React.FC = () => {
                   <TableCell>
                     {product.image_path ? (
                       <ProductImage 
-                        src={`${process.env.REACT_APP_API_URL}${product.image_path}`}
+                        src={`${API_BASE_URL}${product.image_path}`}
                         alt={product.name}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -837,7 +838,7 @@ const Products: React.FC = () => {
               {(imagePreview || currentImagePath) && (
                 <ImagePreview>
                   <PreviewImage 
-                    src={imagePreview || `${process.env.REACT_APP_API_URL}${currentImagePath}`}
+                    src={imagePreview || `${API_BASE_URL}${currentImagePath}`}
                     alt="Anteprima immagine" 
                   />
                   <RemoveImageButton 
